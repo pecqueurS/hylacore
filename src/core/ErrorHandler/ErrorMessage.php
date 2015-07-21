@@ -10,6 +10,17 @@ abstract class ErrorMessage {
     const ERR_ALL = 'ERR_ALL';
     const ERR_MIN = 'ERR_MIN';
 
+    /**
+     * @param $date
+     * @param $errno
+     * @param $errType
+     * @param $errMsg
+     * @param $file
+     * @param $line
+     * @param $vars
+     * @param null $stackTrace
+     * @return string
+     */
     public static function log($date, $errno, $errType, $errMsg, $file, $line, $vars, $stackTrace = null)
     {
         $conf = Conf::get('errors');
@@ -38,6 +49,17 @@ abstract class ErrorMessage {
     }
 
 
+    /**
+     * @param $date
+     * @param $errno
+     * @param $errType
+     * @param $errMsg
+     * @param $file
+     * @param $line
+     * @param $vars
+     * @param null $stackTrace
+     * @return string
+     */
     public static function xml($date, $errno, $errType, $errMsg, $file, $line, $vars, $stackTrace = null)
     {
         $user_errors = array(E_ERROR, E_WARNING, E_PARSE, E_USER_ERROR, E_USER_WARNING, E_USER_NOTICE);
@@ -58,6 +80,17 @@ abstract class ErrorMessage {
     }
 
 
+    /**
+     * @param $date
+     * @param $errno
+     * @param $errType
+     * @param $errMsg
+     * @param $file
+     * @param $line
+     * @param $vars
+     * @param null $stackTrace
+     * @return string
+     */
     public static function display($date, $errno, $errType, $errMsg, $file, $line, $vars, $stackTrace = null)
     {
         $conf = Conf::get('errors');
@@ -87,13 +120,17 @@ abstract class ErrorMessage {
     }
 
 
+    /**
+     * @param $isCli
+     * @return array
+     */
     private static function getStackTrace($isCli) {
         $stackTrace = [];
         $backtraces = array_reverse(debug_backtrace());
 
         if ($isCli) {
             foreach ($backtraces as $key => $backtrace) {
-                if (!empty($backtrace['file']) && strstr($backtrace['file'], 'ErrorHandling') === false) {
+                if (!empty($backtrace['file']) && strstr($backtrace['class'], 'Hyla\ErrorHandler') === false) {
                     $trace = $key . '. ';
                     $trace .= !empty($backtrace['file']) ? $backtrace['file'] : '';
                     $trace .= !empty($backtrace['line']) ? "\nLine : " . $backtrace['line'] : '';
@@ -105,7 +142,7 @@ abstract class ErrorMessage {
             }
         } else {
             foreach ($backtraces as $key => $backtrace) {
-                if (!empty($backtrace['file']) && strstr($backtrace['file'], 'ErrorHandling') === false) {
+                if (!empty($backtrace['file']) && strstr($backtrace['class'], 'Hyla\ErrorHandler') === false) {
                     $trace = '<b>#' . $key . '. </b>';
                     $trace .= !empty($backtrace['file']) ? '<b style="color:blue">' . $backtrace['file'] . '</b>' : '';
                     $trace .= !empty($backtrace['line']) ? "\n<b> -> Line : <span style='color:blue'>" . $backtrace['line'] . '</span></b>' : '';
@@ -121,6 +158,12 @@ abstract class ErrorMessage {
     }
 
 
+    /**
+     * @param $var
+     * @param $isCli
+     * @param int $nbOfLoop
+     * @return string
+     */
     private static function linearizeVar($var, $isCli, $nbOfLoop = 0) {
         $result = '';
         if (is_object($var)) {

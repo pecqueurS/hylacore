@@ -38,6 +38,10 @@ abstract class ErrorHandler {
     private static $vars;
     private static $stackTrace;
 
+
+    /**
+     * init error comportment
+     */
     public static function init()
     {
         self::$env = Conf::get('environment.env');
@@ -63,6 +67,16 @@ abstract class ErrorHandler {
     }
 
 
+    /**
+     * Error handler
+     *
+     * @param $errno
+     * @param $errmsg
+     * @param $filename
+     * @param $linenum
+     * @param $vars
+     * @param null $stackTrace
+     */
     public static function handleError($errno, $errmsg, $filename, $linenum, $vars, $stackTrace = null)
     {
         self::setDate();
@@ -80,6 +94,9 @@ abstract class ErrorHandler {
     }
 
 
+    /**
+     * register shutdown function
+     */
     public static function handleShutdown()
     {
         $error = error_get_last();
@@ -89,17 +106,33 @@ abstract class ErrorHandler {
     }
 
 
+    /**
+     * exception handler
+     *
+     * @param \Exception $Exception
+     */
     public static function handleException(\Exception $Exception)
     {
         self::handleError('EXCEPTION ' . get_class($Exception), $Exception->getMessage(), $Exception->getFile(), $Exception->getLine(), null, $Exception->getTrace());
     }
 
 
+    /**
+     * Create now date formatted
+     */
     private static function setDate() {
         self::$now = date("Y-m-d H:i:s T");
     }
 
 
+    /**
+     * @param $errno
+     * @param $errmsg
+     * @param $filename
+     * @param $linenum
+     * @param $vars
+     * @param null $stackTrace
+     */
     private static function setError($errno, $errmsg, $filename, $linenum, $vars, $stackTrace = null) {
         self::$errno = $errno;
         self::$errmsg = $errmsg;
@@ -110,6 +143,9 @@ abstract class ErrorHandler {
     }
 
 
+    /**
+     * save error to log file
+     */
     private static function saveToLOG() {
         $err = ErrorMessage::log(
             self::$now, self::$errno, self::$errortype[self::$errno], self::$errmsg, self::$filename, self::$linenum, self::$vars, self::$stackTrace
@@ -119,6 +155,9 @@ abstract class ErrorHandler {
     }
 
 
+    /**
+     * save error to xml file
+     */
     private static function saveToXML() {
         $err = ErrorMessage::xml(
             self::$now, self::$errno, self::$errortype[self::$errno], self::$errmsg, self::$filename, self::$linenum, self::$vars, self::$stackTrace
@@ -128,6 +167,9 @@ abstract class ErrorHandler {
     }
 
 
+    /**
+     * redirect url
+     */
     private static function redirectURL() {
         $user_errors = array(E_ERROR, E_WARNING, E_PARSE, E_USER_ERROR, E_USER_WARNING, E_USER_NOTICE);
 
@@ -137,6 +179,9 @@ abstract class ErrorHandler {
     }
 
 
+    /**
+     * display error message
+     */
     private static function displayErrors() {
         echo self::$isCli
             ? ErrorMessage::log(self::$now, self::$errno, self::$errortype[self::$errno], self::$errmsg, self::$filename, self::$linenum, self::$vars, self::$stackTrace,  true)
