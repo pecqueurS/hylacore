@@ -130,7 +130,7 @@ abstract class ErrorMessage {
 
         if ($isCli) {
             foreach ($backtraces as $key => $backtrace) {
-                if (!empty($backtrace['file']) && strstr($backtrace['class'], 'Hyla\ErrorHandler') === false) {
+                if (!empty($backtrace['file']) /*&& strstr($backtrace['class'], 'Hyla\ErrorHandler') === false*/) {
                     $trace = $key . '. ';
                     $trace .= !empty($backtrace['file']) ? $backtrace['file'] : '';
                     $trace .= !empty($backtrace['line']) ? "\nLine : " . $backtrace['line'] : '';
@@ -142,7 +142,7 @@ abstract class ErrorMessage {
             }
         } else {
             foreach ($backtraces as $key => $backtrace) {
-                if (!empty($backtrace['file']) && strstr($backtrace['class'], 'Hyla\ErrorHandler') === false) {
+                if (!empty($backtrace['file'])/* && strstr($backtrace['class'], 'Hyla\ErrorHandler') === false*/) {
                     $trace = '<b>#' . $key . '. </b>';
                     $trace .= !empty($backtrace['file']) ? '<b style="color:blue">' . $backtrace['file'] . '</b>' : '';
                     $trace .= !empty($backtrace['line']) ? "\n<b> -> Line : <span style='color:blue'>" . $backtrace['line'] . '</span></b>' : '';

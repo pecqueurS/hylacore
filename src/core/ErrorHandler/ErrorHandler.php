@@ -84,7 +84,6 @@ abstract class ErrorHandler {
         self::saveToLOG();
         switch(self::$env) {
             case self::DEV :
-                var_dump('tesssssssssssssssssssssssssssssssssssst');
                 self::displayErrors();
                 break;
             default:
