@@ -13,7 +13,7 @@ $loader->register();
 Conf::initApp();
 $app = Conf::get('app');
 if (!empty($app)) {
-    $loader->addPrefix($app['name'], Conf::$rootDir . $app['path']);
+    $loader->addPrefix($app['name'], Conf::$rootDir . $app['path'] . '/etc');
 }
 
 // Load ErrorHandler Class
