@@ -3,6 +3,7 @@
 namespace Hyla\FrontController;
 
 use Hyla\ErrorHandler\ErrorHandler;
+use Hyla\Router\Router;
 use Hyla\Session\Session;
 
 /**
@@ -16,7 +17,7 @@ abstract class FrontController {
         Session::init();
         ErrorHandler::init();
 
-
+        Router::init();
 
     }
 }

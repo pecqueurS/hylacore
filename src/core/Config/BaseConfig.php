@@ -23,13 +23,13 @@ abstract class BaseConfig {
      * @param string $pathFile
      * @param string|null $fieldName
      */
-    public static function add($pathFile, $fieldName = null)
+    public static function add($pathFile, $fieldName = null, $merge = false)
     {
         if (self::$rootDir === null) {
             self::$rootDir = __DIR__ . '/../../../';
         }
 
-        static::loadFile($pathFile, $fieldName);
+        static::loadFile($pathFile, $fieldName, $merge);
     }
 
     /**
@@ -78,14 +78,33 @@ abstract class BaseConfig {
     }
 
     /**
+     * @param array $conf
+     */
+    protected static function mergeConf(array $conf)
+    {
+        foreach ($conf as $key => $value) {
+            if (!empty(static::$conf[$key])) {
+                static::$conf[$key] = array_merge(static::$conf[$key], $value);
+            } else {
+                static::$conf[$key] = $value;
+            }
+        }
+    }
+
+    /**
      * @param string $path
      * @param string|null $fieldName
      */
-    protected static function loadFile($path, $fieldName = null)
+    protected static function loadFile($path, $fieldName = null, $merge = false)
     {
         if (file_exists(self::$rootDir . $path)) {
             $data = parse_ini_file(self::$rootDir . $path, true);
-            static::addConf($fieldName !== null ? array($fieldName => $data) : $data);
+            if ($merge) {
+                static::mergeConf($fieldName !== null ? array($fieldName => $data) : $data);
+            } else {
+                static::addConf($fieldName !== null ? array($fieldName => $data) : $data);
+            }
+
         }
     }
 }
