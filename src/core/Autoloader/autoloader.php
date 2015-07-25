@@ -1,6 +1,5 @@
 <?php
-
-require_once __DIR__.'/ClassLoader/Psr4ClassLoader.php';
+require_once __DIR__ . '/../../lib/ClassLoader/Psr4ClassLoader.php';
 
 use Symfony\Component\ClassLoader\Psr4ClassLoader as ClassLoader;
 use Hyla\Config\Conf;
