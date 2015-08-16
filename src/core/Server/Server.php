@@ -1,7 +1,7 @@
 <?php
 
 namespace Hyla\Server;
-use Components\Tools\StringCase;
+use HylaComponents\Tools\StringCase;
 
 /**
  * Class Session
@@ -11,7 +11,11 @@ abstract class Server {
 
     public static function get($name)
     {
+        if (!empty($_SERVER[$name])) {
+            return $_SERVER[$name];
+        }
         $key = StringCase::camelToScreamingSnake($name);
+
         if (!empty($_SERVER[$key])) {
             return $_SERVER[$key];
         }

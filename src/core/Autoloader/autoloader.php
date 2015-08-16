@@ -6,6 +6,7 @@ use Hyla\Config\Conf;
 
 $loader = new ClassLoader();
 $loader->addPrefix('Hyla',dirname(__DIR__));
+$loader->addPrefix('HylaComponents',dirname(dirname(__DIR__)) . '/components');
 
 $loader->register();
 
@@ -15,5 +16,4 @@ if (!empty($app)) {
     $loader->addPrefix($app['name'], Conf::$rootDir . $app['path'] . '/etc');
 }
 
-// Load ErrorHandler Class
-//require_once dirname(__DIR__).'/ErrorHandling/ErrorHandling.class.php';
+

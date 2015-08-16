@@ -16,7 +16,7 @@ abstract class Router {
     public static function init()
     {
         self::loadRoutes();
-
+        self::matchRoute();
     }
 
 
@@ -52,5 +52,57 @@ abstract class Router {
         }
 
         return $files;
+    }
+
+
+    private static function matchRoute()
+    {
+        $routing = Conf::get('route');
+
+        var_dump($routing);
+        $test = microtime();
+        $routes = array();
+        $routingFormatted = array();
+        foreach ($routing as $routeName => $routeTest) {
+            $routeNameFormatted = substr($routeName, 0,32);
+            $routes[] = '^(?<' . $routeNameFormatted . '>' . $routeTest['pattern'] . ')$';
+            $routingFormatted[$routeNameFormatted] = $routeTest;
+        }
+        $testPattern = '#'.implode('|', $routes).'#';
+        var_dump($testPattern);
+        preg_match($testPattern, $routeUri, $argv);
+        unset($argv[0]);
+        $isFound = false;
+        $results = array_filter($argv, function($value, $key) use (&$isFound) {
+            $resultFilter = is_string($key) && $value != '';
+            if (!$isFound && $resultFilter) {
+                $isFound = true;
+            } elseif ($isFound && $resultFilter) {
+                $isFound = false;
+            }
+
+            return $isFound ? true : $resultFilter;
+        }, ARRAY_FILTER_USE_BOTH);
+        $setName = true;
+        $pattern = '';
+        foreach ($results as $routeNameFormatted => $result) {
+            if ($setName === true) {
+                $pattern = $result;
+                if (!empty($routingFormatted[$routeNameFormatted])) {
+                    $routeInfos = $routingFormatted[$routeNameFormatted];
+                    Logger::log('['.__CLASS__.'] route matches -> '.$routeNameFormatted, Logger::LOG_DEBUG);
+                    $routeInfos['argv'] = array();//$this->getParams;
+                    $routeInfos['name'] = $this->getRouteAppLoaded().':'.$routeNameFormatted;
+                    Logger::log('['.__CLASS__.'] route loaded -> '.$this->getRouteAppLoaded().':'.$routeNameFormatted, Logger::LOG_DEBUG);
+                }
+
+                $setName = false;
+            }elseif ($result !== $pattern) {
+                $routeInfos['argv'][] = $result;
+            }
+        }
+        var_dump($routeInfos);
+        $test2 = microtime();
+        var_dump($test2 - $test);
     }
 }

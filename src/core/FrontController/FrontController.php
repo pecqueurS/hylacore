@@ -15,9 +15,15 @@ abstract class FrontController {
     public static function init()
     {
         Session::init();
+
         ErrorHandler::init();
 
         Router::init();
+
+
+
+
+
 
     }
 }

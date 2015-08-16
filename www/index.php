@@ -1,17 +1,22 @@
 <?php
 use Hyla\Config\Conf;
 use Hyla\FrontController\FrontController;
+use \Hyla\ErrorHandler\ErrorHandler;
+require_once (__DIR__ . '/../src/core/Autoloader/autoloader.php');
 
-require_once ("../src/core/Autoloader/autoloader.php");
+try{
+    Conf::init();
+    FrontController::init();
+} catch(Exception $e){
+    ErrorHandler::handleException($e);
+}
 
-Conf::init();
-FrontController::init();
-
-var_dump($_SERVER);
 
 
+//
 
-var_dump(Conf::getAll());
+
+
 echo 'hello world !';
 
 ?>

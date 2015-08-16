@@ -50,7 +50,8 @@ abstract class ErrorHandler {
             case self::DEV :
                 error_reporting(-1);
                 ini_set('display_errors', 'On');
-                ini_set('html_errors', 'On');
+                $htmlErrors = self::$isCli ? 'Off' : 'On';
+                ini_set('html_errors', $htmlErrors);
 
                 break;
             default:
@@ -147,7 +148,14 @@ abstract class ErrorHandler {
      */
     private static function saveToLOG() {
         $err = ErrorMessage::log(
-            self::$now, self::$errno, self::$errortype[self::$errno], self::$errmsg, self::$filename, self::$linenum, self::$vars, self::$stackTrace
+            self::$now,
+            self::$errno,
+            (empty(self::$errortype[self::$errno]) ? self::$errno : self::$errortype[self::$errno]),
+            self::$errmsg,
+            self::$filename,
+            self::$linenum,
+            self::$vars,
+            self::$stackTrace
         );
 
         ErrorSave::save($err, ErrorSave::LOG);

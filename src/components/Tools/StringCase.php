@@ -1,6 +1,6 @@
 <?php
 
-namespace Components\Tools;
+namespace HylaComponents\Tools;
 
 
 abstract class StringCase {
@@ -37,8 +37,8 @@ abstract class StringCase {
      */
     public static function camelToSnake($camel)
     {
-        if (preg_match_all('/[A-Z][a-z]*/', $camel, $matches) && !empty($matches[0])) {
-           return strtolower(implode('_', $matches[0]));
+        if (preg_match_all('/[a-zA-Z][a-z]*/', $camel, $matches) && !empty($matches[0])) {
+            return strtolower(implode('_', $matches[0]));
         }
         return $camel;
     }
