@@ -35,7 +35,6 @@ abstract class Conf extends BaseConfig {
                    break;
                 }
             } else {
-var_dump(Server::get('serverName'));
                 $serverNameIndex = array_search(Server::get('serverName'), $app['serverName']);
                 $serverNameIndex = $serverNameIndex === false ? array_search(Server::get('serverName') . ':' . Server::get('serverPort'), $app['serverName']) : $serverNameIndex;
 

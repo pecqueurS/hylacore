@@ -10,7 +10,7 @@ abstract class BaseConfig {
 
     const CLI = 'cli';
 
-    protected static $isCli;
+    public static $isCli;
 
     /**
      * @var string root dir project
