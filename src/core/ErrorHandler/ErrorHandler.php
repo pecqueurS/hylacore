@@ -45,25 +45,29 @@ abstract class ErrorHandler {
     public static function init()
     {
         self::$env = Conf::get('environment.env');
-        self::$isCli = php_sapi_name() === self::CLI;
-        switch (self::$env) {
-            case self::DEV :
-                error_reporting(-1);
-                ini_set('display_errors', 'On');
-                $htmlErrors = self::$isCli ? 'Off' : 'On';
-                ini_set('html_errors', $htmlErrors);
+        if (self::$env === null) {
+            throw new \Exception('Environment not found !');
+        } else {
+            self::$isCli = php_sapi_name() === self::CLI;
+            switch (self::$env) {
+                case self::DEV :
+                    error_reporting(-1);
+                    ini_set('display_errors', 'On');
+                    $htmlErrors = self::$isCli ? 'Off' : 'On';
+                    ini_set('html_errors', $htmlErrors);
 
-                break;
-            default:
-                error_reporting(0);
-                ini_set('display_errors', 'Off');
-                ini_set('html_errors', 'Off');
-        }
+                    break;
+                default:
+                    error_reporting(0);
+                    ini_set('display_errors', 'Off');
+                    ini_set('html_errors', 'Off');
+            }
 
-        set_error_handler(array(get_called_class(), 'handleError'));
-        set_exception_handler(array(get_called_class(), 'handleException'));
-        if (!self::$isCli) {
-            register_shutdown_function(array(get_called_class(), 'handleShutdown'));
+            set_error_handler(array(get_called_class(), 'handleError'));
+            set_exception_handler(array(get_called_class(), 'handleException'));
+            if (!self::$isCli) {
+                register_shutdown_function(array(get_called_class(), 'handleShutdown'));
+            }
         }
     }
 
@@ -113,7 +117,7 @@ abstract class ErrorHandler {
      */
     public static function handleException(\Exception $Exception)
     {
-        self::handleError('EXCEPTION ' . get_class($Exception), $Exception->getMessage(), $Exception->getFile(), $Exception->getLine(), null, $Exception->getTrace());
+        self::handleError(get_class($Exception), $Exception->getMessage(), $Exception->getFile(), $Exception->getLine(), null, $Exception->getTrace());
     }
 
 
@@ -167,7 +171,14 @@ abstract class ErrorHandler {
      */
     private static function saveToXML() {
         $err = ErrorMessage::xml(
-            self::$now, self::$errno, self::$errortype[self::$errno], self::$errmsg, self::$filename, self::$linenum, self::$vars, self::$stackTrace
+            self::$now,
+            self::$errno,
+            (empty(self::$errortype[self::$errno]) ? self::$errno : self::$errortype[self::$errno]),
+            self::$errmsg,
+            self::$filename,
+            self::$linenum,
+            self::$vars,
+            self::$stackTrace
         );
 
         ErrorSave::save($err, ErrorSave::XML);
@@ -191,8 +202,28 @@ abstract class ErrorHandler {
      */
     private static function displayErrors() {
         echo self::$isCli
-            ? ErrorMessage::log(self::$now, self::$errno, self::$errortype[self::$errno], self::$errmsg, self::$filename, self::$linenum, self::$vars, self::$stackTrace,  true)
-            : ErrorMessage::display(self::$now, self::$errno, self::$errortype[self::$errno], self::$errmsg, self::$filename, self::$linenum, self::$vars, self::$stackTrace, true);
+            ? ErrorMessage::log(
+                self::$now,
+                self::$errno,
+                (empty(self::$errortype[self::$errno]) ? self::$errno : self::$errortype[self::$errno]),
+                self::$errmsg,
+                self::$filename,
+                self::$linenum,
+                self::$vars,
+                self::$stackTrace,
+                true
+            )
+            : ErrorMessage::display(
+                self::$now,
+                self::$errno,
+                (empty(self::$errortype[self::$errno]) ? self::$errno : self::$errortype[self::$errno]),
+                self::$errmsg,
+                self::$filename,
+                self::$linenum,
+                self::$vars,
+                self::$stackTrace,
+                true
+            );
     }
 
 

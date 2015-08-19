@@ -33,13 +33,12 @@ abstract class ErrorMessage {
             $complementaryInformations = self::linearizeVar($vars, true);
             $err .= 'Informations Vars : ' . PHP_EOL . $complementaryInformations;
         } elseif ($conf['level'] == self::ERR_TRACES) {
-            $stackTrace = implode("\n", ($stackTrace === null ? self::getStackTrace(true) : $stackTrace));
+            $stackTrace = $stackTrace === null ? implode("\n", self::getStackTrace(true)) : self::linearizeVar($stackTrace, true);
             $err .= 'StackTrace : ' . $stackTrace;
         } elseif ($conf['level'] == self::ERR_ALL) {
             $complementaryInformations = self::linearizeVar($vars, true);
             $err .= 'Informations Vars : ' . PHP_EOL . $complementaryInformations;
-
-            $stackTrace = implode("\n", ($stackTrace === null ? self::getStackTrace(true) : $stackTrace));
+            $stackTrace = $stackTrace === null ? implode("\n", self::getStackTrace(true)) : self::linearizeVar($stackTrace, true);
             $err .= 'StackTrace : ' . $stackTrace;
         } else {
             $err .= PHP_EOL;
@@ -103,13 +102,13 @@ abstract class ErrorMessage {
             $complementaryInformations = self::linearizeVar($vars, false);
             $err .= "<b>Informations Vars</b> : \n$complementaryInformations\n";
         } elseif ($conf['level'] == self::ERR_TRACES) {
-            $stackTrace = implode("\n", ($stackTrace === null ? self::getStackTrace(false) : $stackTrace));
+            $stackTrace = $stackTrace === null ? implode("\n", self::getStackTrace(true)) : self::linearizeVar($stackTrace, true);
             $err .= "<b>StackTrace</b> : \n$stackTrace\n";
         } elseif ($conf['level'] == self::ERR_ALL) {
             $complementaryInformations = self::linearizeVar($vars, false);
             $err .= "<b>Informations Vars</b> : \n$complementaryInformations\n";
 
-            $stackTrace = implode("\n", ($stackTrace === null ? self::getStackTrace(false) : $stackTrace));
+            $stackTrace = $stackTrace === null ? implode("\n", self::getStackTrace(true)) : self::linearizeVar($stackTrace, true);
             $err .= "<b>StackTrace</b> : \n$stackTrace\n";
         } else {
             $err .= "\n";
