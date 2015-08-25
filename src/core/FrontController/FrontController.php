@@ -2,8 +2,10 @@
 
 namespace Hyla\FrontController;
 
+use Hyla\Config\Conf;
 use Hyla\ErrorHandler\ErrorHandler;
 use Hyla\Router\Router;
+use Hyla\Server\Server;
 use Hyla\Session\Session;
 
 /**
@@ -12,18 +14,72 @@ use Hyla\Session\Session;
  */
 abstract class FrontController {
 
-    public static function init()
+    const PRECALL = 'PRECALL';
+    const POSTCALL = 'POSTCALL';
+
+    const PLUGINS_NAMESPACE = 'HylaPlugins\\';
+
+    protected static $response;
+
+    public static function launch()
+    {
+        self::init();
+        self::run();
+    }
+
+
+    protected static function init()
     {
         Session::init();
-
         ErrorHandler::init();
-
         Router::init();
+    }
 
 
+    protected static function run()
+    {
+        self::launchPlugins(self::PRECALL);
+        self::launchController();
+        self::addConfToResponse();
+        self::launchPlugins(self::POSTCALL);
+
+        var_dump(self::$response);
+    }
 
 
+    protected static function launchPlugins($type)
+    {
+        switch ($type) {
+            case self::PRECALL:
+                $plugins = Conf::get('plugins.precall');
+                break;
+            case self::POSTCALL:
+                $plugins = Conf::get('plugins.postcall');
+                break;
+            default:
+                throw new \Exception('Invalid plugin type');
+        }
+
+        var_dump($plugins);
+        foreach ($plugins as $plugin) {
+            $class = self::PLUGINS_NAMESPACE . $plugin;
+            self::$response[$plugin] = $class::launch(self::$response);
+        }
+
+    }
 
 
+    protected static function launchController()
+    {
+
+    }
+
+
+    protected static function addConfToResponse()
+    {
+        self::$response['app'] = Conf::get('app');
+        self::$response['routeInfo'] = Conf::get('routeInfo');
+        self::$response['session'] = Session::getAll();
+        self::$response['server'] = Server::getAll();
     }
 }

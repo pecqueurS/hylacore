@@ -9,6 +9,7 @@ namespace Hyla\Config;
 abstract class BaseConfig {
 
     const CLI = 'cli';
+    const GUI = 'gui';
 
     public static $isCli;
 

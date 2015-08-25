@@ -42,6 +42,7 @@ abstract class Router {
         self::createRouteInfos(self::matchRoute());
 
         self::addGetParameters();
+        self::addTypeResponse();
 
         Conf::set('routeInfo', self::$routeInfos);
     }
@@ -171,6 +172,17 @@ abstract class Router {
                     throw new \Exception('invalid parameters !');
                 }
             }
+        }
+    }
+
+
+    /**
+     * Add response type default
+     */
+    private static function addTypeResponse()
+    {
+        if (empty(self::$routeInfos['response'])) {
+            self::$routeInfos['response'] = Conf::$isCli ? Conf::CLI : Conf::GUI;
         }
     }
 
