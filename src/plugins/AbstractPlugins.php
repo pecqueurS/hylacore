@@ -23,7 +23,7 @@ abstract class AbstractPlugins {
     }
 
 
-   protected static function display()
+    protected static function display()
     {
 
     }

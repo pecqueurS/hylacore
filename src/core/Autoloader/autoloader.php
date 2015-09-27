@@ -14,7 +14,7 @@ $loader->register();
 Conf::initApp();
 $app = Conf::get('app');
 if (!empty($app)) {
-    $loader->addPrefix($app['name'], Conf::$rootDir . $app['path'] . '/etc');
+    $loader->addPrefix($app['name'], Conf::$rootDir . $app['path'] . '/src');
 }
 
 

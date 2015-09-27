@@ -35,7 +35,7 @@ class Translation extends Tpl {
 
                 break;
             case self::NO_TRANSLATE:
-var_dump('test');
+//var_dump('test');
                 break;
         }
 
@@ -43,5 +43,16 @@ var_dump('test');
 
     public static function trad($name) {
         return self::$traduction[$name];
+    }
+
+    protected static function display()
+    {
+
+    }
+
+
+    protected static function execute()
+    {
+        return null;
     }
 }

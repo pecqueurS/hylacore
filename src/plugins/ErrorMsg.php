@@ -20,4 +20,15 @@ class ErrorMsg extends AbstractPlugins {
 
         return null;
     }
+
+    protected static function init(array $data = null)
+    {
+
+    }
+
+
+    protected static function display()
+    {
+
+    }
 }

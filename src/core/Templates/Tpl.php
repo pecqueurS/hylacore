@@ -1,10 +1,10 @@
 <?php
 
-namespace Bundles\Templates;
+namespace Hyla\Templates;
 
-use Bundles\Parametres\Conf;
-use Bundles\Templates\ExtentionsTwig\FormExtTwig;
-use Bundles\Templates\ExtentionsTwig\TranslateExtTwig;
+use Hyla\Config\Conf;
+use Hyla\Templates\ExtentionsTwig\FormExtTwig;
+use Hyla\Templates\ExtentionsTwig\TranslateExtTwig;
 
 /**
 * 
@@ -23,24 +23,25 @@ class Tpl {
 
 		);
 
-	public $dirTwigTpl = 'App/Exemple/Views/Twig_Tpl';
+	public $dirTwigTpl = 'app/example/src/Views/Twig_Tpl';
 	 
 	protected $vars = array();
 
 	protected $twig;
 
-	public function __construct($dirTwigTpl=null) {
-		if(!$dirTwigTpl) $dirTwigTpl = $this->dirTwigTpl;
-		require_once("Twig-1.15.1/lib/Twig/Autoloader.php");
+	public function __construct($dirTwigTpl = null) {
+		if($dirTwigTpl !== null) {
+			$this->dirTwigTpl = $dirTwigTpl;
+		}
+		require_once(Conf::get('app.root') . "src/lib/Twig-1.15.1/lib/Twig/Autoloader.php");
 		\Twig_Autoloader::register();
-		$dirRoot = dirname(dirname(__DIR__));
-		$loader = new \Twig_Loader_Filesystem($dirRoot.$dirTwigTpl);
+		$loader = new \Twig_Loader_Filesystem(Conf::get('app.root') . $dirTwigTpl);
 		$this->twig = new \Twig_Environment($loader, $this->environnement);
 		$this->twig->addExtension(new \Twig_Extension_Debug());
 		// Bundle Formulaire affichage par form(nomForm, nomInput)
-		$this->twig->addExtension(new FormExtTwig());
+		//$this->twig->addExtension(new FormExtTwig());
 		// Bundle Translate affichage par dico(cle)
-		$this->twig->addExtension(new TranslateExtTwig());
+		//$this->twig->addExtension(new TranslateExtTwig());
 	}
 
 	public static function display($vars = array(), $dirTpl = null) {
@@ -61,16 +62,21 @@ class Tpl {
 	}
 
 	protected function selectTpl() {
-		$controller = explode("\\",Conf::getRoute()->getController());
-		return str_replace("::", DIRECTORY_SEPARATOR, $controller[count($controller)-1]).".twig";
+		if (!empty(Conf::get('routeInfo.tpl'))) {
+			return Conf::get('routeInfo.tpl');
+		} elseif (file_exists(Conf::get('app.root') . "{$this->dirTwigTpl}/{$this->getDefaultTemplate()}")) {
+			return $this->getDefaultTemplate();
+		} else {
+			return Conf::get('view.path');
+        }
 	}
 
+	protected function getDefaultTemplate() {
+		$routeInfos = Conf::get('routeInfo');
+		$class = explode('\\', $routeInfos['class']);
+		$directory = end($class);
+		$file = $routeInfos['method'];
+
+		return "$directory/$file.twig";
+	}
 }
-
-
-
-
-
-
-
-?>

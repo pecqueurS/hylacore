@@ -6,17 +6,18 @@ require_once (__DIR__ . '/../src/core/Autoloader/autoloader.php');
 
 try{
     Conf::init();
-    FrontController::init();
+    FrontController::launch();
 } catch(Exception $e){
     ErrorHandler::handleException($e);
 }
 
 
 
-//
+//var_dump(Conf::getAll());
 
 
 
-echo 'hello world !';
+
+//echo 'hello world !';
 
 ?>

@@ -2,7 +2,7 @@
 
 namespace Bundles\Templates\ExtentionsTwig;
 
-use Bundles\Formulaires\Forms;
+use Hyla\Formulaires\Forms;
 
 class FormExtTwig extends \Twig_Extension
 {

@@ -59,4 +59,15 @@ class GeoLoc extends AbstractPlugins {
             $_SERVER['GEOIP_LONGITUDE'] = $record->longitude;
         }
     }
+
+    protected static function display()
+    {
+
+    }
+
+
+    protected static function execute()
+    {
+        return null;
+    }
 }

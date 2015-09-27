@@ -2,7 +2,7 @@
 
 namespace Bundles\Templates\ExtentionsTwig;
 
-use Bundles\Translate\Dico;
+use Hyla\Translate\Dico;
 
 class TranslateExtTwig extends \Twig_Extension
 {

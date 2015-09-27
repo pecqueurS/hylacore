@@ -2,6 +2,7 @@
 
 namespace Hyla\FrontController;
 
+
 use Hyla\Config\Conf;
 use Hyla\ErrorHandler\ErrorHandler;
 use Hyla\Router\Router;
@@ -42,8 +43,6 @@ abstract class FrontController {
         self::launchController();
         self::addConfToResponse();
         self::launchPlugins(self::POSTCALL);
-
-        var_dump(self::$response);
     }
 
 
@@ -60,18 +59,23 @@ abstract class FrontController {
                 throw new \Exception('Invalid plugin type');
         }
 
-        var_dump($plugins);
         foreach ($plugins as $plugin) {
             $class = self::PLUGINS_NAMESPACE . $plugin;
             self::$response[$plugin] = $class::launch(self::$response);
         }
-
     }
 
 
     protected static function launchController()
     {
-
+        $classname = Conf::get('routeInfo.class');
+        $handler = array( new $classname(), Conf::get('routeInfo.method'));
+        if (is_callable($handler)) {
+            $response = call_user_func_array($handler, Conf::get('routeInfo.argv'));
+            self::$response = array_merge(self::$response, $response);
+        } else {
+            throw new \Exception('Controller does not exist');
+        }
     }
 
 

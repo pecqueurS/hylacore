@@ -25,7 +25,7 @@ class Tpl extends AbstractPlugins {
                 $response = '';
                 break;
             case Conf::GUI:
-                $response = Tpl::display(self::$response, "/app/" . Conf::getAppName() . "/Views/Twig_Tpl");
+                $response = \Hyla\Templates\Tpl::display(self::$response, Conf::get('app.path') . "/src/Views/Twig_Tpl");
                 break;
             case 'JSON':
                 $response = json_encode(self::$response);
@@ -37,4 +37,8 @@ class Tpl extends AbstractPlugins {
         echo $response;
     }
 
+    protected static function execute()
+    {
+        return null;
+    }
 }
