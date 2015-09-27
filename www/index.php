@@ -10,14 +10,4 @@ try{
 } catch(Exception $e){
     ErrorHandler::handleException($e);
 }
-
-
-
-//var_dump(Conf::getAll());
-
-
-
-
-//echo 'hello world !';
-
 ?>

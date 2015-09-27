@@ -2,6 +2,7 @@
 
 namespace Hyla\Router;
 use Hyla\Config\Conf;
+use Hyla\Logger\Logger;
 use Hyla\Server\Server;
 
 /**
@@ -141,7 +142,7 @@ abstract class Router {
                 $pattern = $result;
                 if (!empty(self::$allRoutes[$routeNameFormatted])) {
                     self::$routeInfos = self::$allRoutes[$routeNameFormatted];
-                    //Logger::log('['.__CLASS__.'] route matches -> '.$routeNameFormatted, Logger::LOG_DEBUG);
+                    Logger::log('['.__CLASS__.'] route matches -> '.$routeNameFormatted, Logger::DEBUG);
                 }
                 $setName = false;
             } elseif ($result !== $pattern) {

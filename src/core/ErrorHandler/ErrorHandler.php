@@ -192,7 +192,12 @@ abstract class ErrorHandler {
         $user_errors = array(E_ERROR, E_WARNING, E_PARSE, E_USER_ERROR, E_USER_WARNING, E_USER_NOTICE);
 
         if (in_array(self::$errno, $user_errors)) {
-            header ('HTTP/1.0 500 Internal Server Error', true, 500);
+        header ('HTTP/1.0 500 Internal Server Error', true, 500);
+        $err500 = Conf::get('app.root') . Conf::get('app.path') . '/' . Conf::get('redirection.path') . '/' . Conf::get('redirection.500');
+            if (file_exists($err500)) {
+                echo file_get_contents($err500);
+            }
+            exit();
         }
     }
 
