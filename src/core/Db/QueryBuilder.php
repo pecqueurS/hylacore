@@ -1,0 +1,306 @@
+<?php
+
+namespace Hyla\Db;
+
+/**
+ * Class QueryBuilder
+ * @package Hyla\Db
+ */
+class QueryBuilder {
+
+    const SELECT = 'SELECT';
+
+    const INSERT = 'INSERT';
+
+    const UPDATE = 'UPDATE';
+
+    const DELETE = 'DELETE';
+
+    const ESCAPE_FIELD = '`';
+
+    const ESCAPE_VALUE = '\'';
+
+    protected $fields = array();
+
+    protected $table = '';
+
+    protected $joins = array();
+
+    protected $conditions = array();
+
+    protected $orderBy = array();
+
+    protected $groupBy = array();
+
+    protected $limit = array();
+
+
+    public function __construct($table)
+    {
+        $this->table = $table;
+    }
+
+
+    public function addFields(array $fields)
+    {
+        $this->fields = array_merge($this->fields, $fields);
+    }
+
+
+    public function addJoins(array $joins)
+    {
+        $this->joins = array_merge($this->joins, $joins);
+    }
+
+
+    public function addConditions(array $conditions)
+    {
+        $this->conditions = array_merge($this->conditions, $conditions);
+    }
+
+
+    public function addOrderBy(array $orderBy)
+    {
+        $this->orderBy = array_merge($this->orderBy, $orderBy);
+    }
+
+
+    public function addGroupBy(array $groupBy)
+    {
+        $this->groupBy = array_merge($this->groupBy, $groupBy);
+    }
+
+
+    public function build($type = self::SELECT, array $rows = array())
+    {
+        switch ($type) {
+            case self::SELECT:
+                $query = $this->select();
+                break;
+            case self::INSERT:
+                $query = $this->insert($rows);
+                break;
+            case self::UPDATE:
+                $query = $this->update($rows);
+                break;
+            case self::DELETE:
+                $query = $this->delete();
+                break;
+            default:
+                throw new \Exception('Type does not exist');
+        }
+
+        return $query;
+    }
+
+
+    protected function select()
+    {
+        $query = "SELECT {$this->formatFields()}
+                FROM `{$this->table}`
+                {$this->formatJoins()}
+                {$this->formatCondition()}
+                {$this->formatGroupBy()}
+                {$this->formatOrderBy()}
+                {$this->formatLimit()};";
+
+        return $query;
+    }
+
+
+    protected function insert(array $rows = array())
+    {
+        if (empty($rows)) {
+            return '';
+        }
+        $this->addFields($this->retrieveFieldnames($rows));
+
+        $query = "INSERT
+                  INTO `{$this->table}`
+                  ({$this->formatFields()})
+                  VALUES
+                  {$this->formatInsertValues($rows)};";
+
+        return $query;
+    }
+
+
+    protected function update(array $rows = array())
+    {
+        if (empty($rows)) {
+            return '';
+        } elseif (count($rows) === 1) {
+            $query = "UPDATE `{$this->table}`
+                      SET {$this->formatSetValues($rows)}
+                      {$this->formatCondition()};";
+        } else {
+            $fields = $this->retrieveFieldnames($rows);
+            $query = "INSERT
+                      INTO `{$this->table}`
+                      ({$this->formatFields()})
+                      VALUES
+                      {$this->formatInsertValues($rows)}
+                      ON DUPLICATE KEY UPDATE
+                          {$this->formatDuplicateValues($fields)};";
+        }
+
+        return $query;
+    }
+
+
+    protected function delete()
+    {
+        $query = "DELETE
+                  FROM `{$this->table}`
+                  {$this->formatCondition()};";
+
+        return $query;
+    }
+
+
+    /**
+     * @param array $rows
+     * @return array
+     */
+    protected function retrieveFieldnames(array $rows)
+    {
+        $firstRow = array_shift($rows);
+        if ($firstRow !== null) {
+            return array_keys($firstRow);
+        }
+        return array();
+    }
+
+
+    protected function formatFields()
+    {
+        return implode(',', static::escapeFields($this->fields));
+    }
+
+
+    protected function formatJoins()
+    {
+        $joins = '';
+        foreach ($this->joins as $join) {
+            if (is_array($join)) {
+                $join = new Join(
+                    $join['table'],
+                    $join['on'],
+                    isset($join['type'])
+                );
+            }
+            if (!($join instanceof Join)) {
+                continue;
+            }
+
+            $joins .= $join->getSql($joins === '');
+        }
+
+        return $joins;
+    }
+
+
+    protected function formatCondition()
+    {
+        $conditions = '';
+        foreach ($this->conditions as $condition) {
+            if (is_array($condition)) {
+                $condition = GroupCondition::createConditionClass($condition);
+            }
+            if (!($condition instanceof Condition) && !($condition instanceof GroupCondition)) {
+                continue;
+            }
+
+            $conditions .= $condition->getSql($conditions === '');
+        }
+
+        return $conditions;
+    }
+
+
+    protected function formatGroupBy()
+    {
+        return '';
+    }
+
+
+    protected function formatOrderBy()
+    {
+        return '';
+    }
+
+
+    protected function formatLimit()
+    {
+        return '';
+    }
+
+    protected function formatSetValues(array $rows)
+    {
+        return '';
+    }
+
+
+    /**
+     * @param array $rows
+     * @return string
+     */
+    protected function formatInsertValues(array $rows)
+    {
+        $insertValues = array();
+        foreach($rows as $row) {
+            $escapeValues = array_map(function($row) {
+                return "'$row'";
+            }, $row);
+            $insertValues[] = implode(',', $escapeValues);
+        }
+        return '(' . implode('),(', $insertValues) . ')';
+    }
+
+
+    /**
+     * @param array $fields
+     * @return string
+     */
+    protected function formatDuplicateValues(array $fields)
+    {
+        $result = array();
+        foreach ($fields as $field) {
+            $result[] = "$field=VALUES($field)";
+        }
+        return implode(',', $result);
+    }
+
+
+    protected static function escape(array $values, $escapeType = self::ESCAPE_FIELD)
+    {
+        return array_map(function($element) use($escapeType) {
+            if ($escapeType === QueryBuilder::ESCAPE_FIELD && strstr($element, ' ') !== false) {
+                return $element;
+            }
+
+            if ($escapeType === QueryBuilder::ESCAPE_FIELD && strstr($element, '.') !== false) {
+                $elements = explode('.', $element);
+                foreach ($elements as &$elem) {
+                    $elem = $escapeType . $elem . $escapeType;
+                }
+
+                return implode('.', $elements);
+            }
+
+            return $escapeType . $element . $escapeType;
+        }, $values);
+    }
+
+
+    public static function escapeFields(array $fields)
+    {
+        return static::escape($fields);
+    }
+
+
+    public static function escapeValues(array $values)
+    {
+        return static::escape($values, self::ESCAPE_VALUE);
+    }
+}
