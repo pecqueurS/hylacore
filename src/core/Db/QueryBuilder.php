@@ -32,7 +32,10 @@ class QueryBuilder {
 
     protected $groupBy = array();
 
-    protected $limit = array();
+    protected $limit = array(
+        'limit' => null,
+        'offset' => null
+    );
 
 
     public function __construct($table)
@@ -65,9 +68,16 @@ class QueryBuilder {
     }
 
 
-    public function addGroupBy(array $groupBy)
+    public function addGroupBy($groupBy)
     {
-        $this->groupBy = array_merge($this->groupBy, $groupBy);
+        $this->groupBy[] = $groupBy;
+    }
+
+
+    public function addLimit($limit, $offset = null)
+    {
+        $this->limit['limit'] = $limit;
+        $this->limit['offset'] = $offset;
     }
 
 
@@ -220,24 +230,58 @@ class QueryBuilder {
 
     protected function formatGroupBy()
     {
+        if (!empty($this->groupBy)) {
+            return ' GROUP BY' . implode(',', self::escapeFields($this->groupBy));
+        }
+
         return '';
     }
 
 
     protected function formatOrderBy()
     {
-        return '';
+        $orderBys = '';
+        foreach ($this->orderBy as $orderBy) {
+            if (is_array($orderBy)) {
+                $orderBy = new OrderBy(
+                    $orderBy['field'],
+                    $orderBy['order']
+                );
+            }
+            if (!($orderBy instanceof OrderBy)) {
+                continue;
+            }
+
+            $orderBys .= $orderBy->getSql($orderBys === '');
+        }
+
+        return $orderBys;
     }
 
 
     protected function formatLimit()
     {
+        if ($this->limit['limit'] !== null) {
+            return ' LIMIT ' . ($this->limit['offset'] !== null ? $this->limit['offset'] . ', ' : '') . $this->limit['limit'];
+        }
+
         return '';
     }
 
+
     protected function formatSetValues(array $rows)
     {
-        return '';
+        $row = array_shift($rows);
+        $escapeValues = $this->escapeValues($row);
+        $escapeFields = $this->escapeFields(array_keys($row));
+        $setValuesArray = array_combine($escapeFields, $escapeValues);
+
+        $setValues = array();
+        foreach ($setValuesArray as $key => $value) {
+            $setValues[] = ' ' . $key . ' = ' . $value;
+        }
+
+        return ' SET ' . implode(', ', $setValues);
     }
 
 
@@ -249,8 +293,8 @@ class QueryBuilder {
     {
         $insertValues = array();
         foreach($rows as $row) {
-            $escapeValues = array_map(function($row) {
-                return "'$row'";
+            $escapeValues = array_map(function($value) {
+                return "'$value'";
             }, $row);
             $insertValues[] = implode(',', $escapeValues);
         }
