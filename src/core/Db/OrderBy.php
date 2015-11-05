@@ -3,7 +3,7 @@
 namespace Hyla\Db;
 
 /**
-* Class Join
+* Class OrderBy
  * @package Hyla\Db
 */
 class OrderBy {
@@ -14,6 +14,10 @@ class OrderBy {
     private $field;
     private $order;
 
+    /**
+     * @param string $field
+     * @param string $order
+     */
     public function __construct($field, $order = self::ASC)
     {
         $field = QueryBuilder::escapeFields(array($field));
@@ -22,6 +26,10 @@ class OrderBy {
     }
 
 
+    /**
+     * @param bool|false $first
+     * @return string
+     */
     public function getSql($first = false)
     {
         $prepend = $first ? ' ORDER BY ' : ', ';

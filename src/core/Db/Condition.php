@@ -26,15 +26,18 @@ class Condition {
     const NOT_IN = "NOT IN";
 
     private $field;
-
     private $value;
-
     private $operator;
-
     private $logicOperator;
-
     private $escapeValueLikeField;
 
+    /**
+     * @param string $field
+     * @param string $value
+     * @param string $operator
+     * @param string $logicOperator
+     * @param bool|false $escapeValueLikeField
+     */
     public function __construct($field, $value, $operator = self::EQUAL, $logicOperator = self::LOGIC_AND, $escapeValueLikeField = false)
     {
         $this->field = $field;
@@ -45,6 +48,10 @@ class Condition {
     }
 
 
+    /**
+     * @param bool|false $first
+     * @return string
+     */
     public function getSql($first = false)
     {
         $prepend = ' ';
@@ -56,6 +63,9 @@ class Condition {
     }
 
 
+    /**
+     * @return mixed
+     */
     private function getField()
     {
         $fields = QueryBuilder::escapeFields(array($this->field));
@@ -63,6 +73,9 @@ class Condition {
     }
 
 
+    /**
+     * @return mixed|string
+     */
     private function getValue()
     {
         $method = $this->escapeValueLikeField ? 'escapeFields' : 'escapeValues';

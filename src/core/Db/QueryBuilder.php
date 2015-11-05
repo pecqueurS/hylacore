@@ -8,72 +8,93 @@ namespace Hyla\Db;
  */
 class QueryBuilder {
 
+    /**
+     * Build type
+     */
     const SELECT = 'SELECT';
-
     const INSERT = 'INSERT';
-
     const UPDATE = 'UPDATE';
-
     const DELETE = 'DELETE';
 
+    /**
+     * Escape type
+     */
     const ESCAPE_FIELD = '`';
-
     const ESCAPE_VALUE = '\'';
 
+    /**
+     * query elements
+     */
     protected $fields = array();
-
     protected $table = '';
-
     protected $joins = array();
-
     protected $conditions = array();
-
     protected $orderBy = array();
-
     protected $groupBy = array();
-
     protected $limit = array(
         'limit' => null,
         'offset' => null
     );
 
 
+    /**
+     * @param string $table
+     */
     public function __construct($table)
     {
         $this->table = $table;
     }
 
 
+    /**
+     * @param array $fields
+     */
     public function addFields(array $fields)
     {
         $this->fields = array_merge($this->fields, $fields);
     }
 
 
+    /**
+     * @param array $joins
+     */
     public function addJoins(array $joins)
     {
         $this->joins = array_merge($this->joins, $joins);
     }
 
 
+    /**
+     * @param array $conditions
+     */
     public function addConditions(array $conditions)
     {
         $this->conditions = array_merge($this->conditions, $conditions);
     }
 
 
+    /**
+     * @param array $orderBy
+     */
     public function addOrderBy(array $orderBy)
     {
         $this->orderBy = array_merge($this->orderBy, $orderBy);
     }
 
 
+    /**
+     * @param string $groupBy
+     */
     public function addGroupBy($groupBy)
     {
         $this->groupBy[] = $groupBy;
     }
 
 
+    /**
+     * @param int|null $limit
+     * @param int|null $offset
+     */
     public function addLimit($limit, $offset = null)
     {
         $this->limit['limit'] = $limit;
@@ -81,6 +102,12 @@ class QueryBuilder {
     }
 
 
+    /**
+     * @param string $type
+     * @param array $rows
+     * @return string
+     * @throws \Exception
+     */
     public function build($type = self::SELECT, array $rows = array())
     {
         switch ($type) {
@@ -104,6 +131,9 @@ class QueryBuilder {
     }
 
 
+    /**
+     * @return string
+     */
     protected function select()
     {
         $query = "SELECT {$this->formatFields()}
@@ -118,6 +148,10 @@ class QueryBuilder {
     }
 
 
+    /**
+     * @param array $rows
+     * @return string
+     */
     protected function insert(array $rows = array())
     {
         if (empty($rows)) {
@@ -135,6 +169,10 @@ class QueryBuilder {
     }
 
 
+    /**
+     * @param array $rows
+     * @return string
+     */
     protected function update(array $rows = array())
     {
         if (empty($rows)) {
@@ -158,6 +196,9 @@ class QueryBuilder {
     }
 
 
+    /**
+     * @return string
+     */
     protected function delete()
     {
         $query = "DELETE
@@ -182,12 +223,18 @@ class QueryBuilder {
     }
 
 
+    /**
+     * @return string
+     */
     protected function formatFields()
     {
         return implode(',', static::escapeFields($this->fields));
     }
 
 
+    /**
+     * @return string
+     */
     protected function formatJoins()
     {
         $joins = '';
@@ -210,6 +257,9 @@ class QueryBuilder {
     }
 
 
+    /**
+     * @return string
+     */
     protected function formatCondition()
     {
         $conditions = '';
@@ -228,6 +278,9 @@ class QueryBuilder {
     }
 
 
+    /**
+     * @return string
+     */
     protected function formatGroupBy()
     {
         if (!empty($this->groupBy)) {
@@ -238,6 +291,9 @@ class QueryBuilder {
     }
 
 
+    /**
+     * @return string
+     */
     protected function formatOrderBy()
     {
         $orderBys = '';
@@ -259,6 +315,9 @@ class QueryBuilder {
     }
 
 
+    /**
+     * @return string
+     */
     protected function formatLimit()
     {
         if ($this->limit['limit'] !== null) {
@@ -269,6 +328,10 @@ class QueryBuilder {
     }
 
 
+    /**
+     * @param array $rows
+     * @return string
+     */
     protected function formatSetValues(array $rows)
     {
         $row = array_shift($rows);
@@ -298,6 +361,7 @@ class QueryBuilder {
             }, $row);
             $insertValues[] = implode(',', $escapeValues);
         }
+
         return '(' . implode('),(', $insertValues) . ')';
     }
 
@@ -316,6 +380,11 @@ class QueryBuilder {
     }
 
 
+    /**
+     * @param array $values
+     * @param string $escapeType
+     * @return array
+     */
     protected static function escape(array $values, $escapeType = self::ESCAPE_FIELD)
     {
         return array_map(function($element) use($escapeType) {
@@ -337,12 +406,20 @@ class QueryBuilder {
     }
 
 
+    /**
+     * @param array $fields
+     * @return array
+     */
     public static function escapeFields(array $fields)
     {
         return static::escape($fields);
     }
 
 
+    /**
+     * @param array $values
+     * @return array
+     */
     public static function escapeValues(array $values)
     {
         return static::escape($values, self::ESCAPE_VALUE);

@@ -3,19 +3,21 @@
 namespace Hyla\Db;
 
 /**
-* Class Condition
+* Class GroupCondition
  * @package Hyla\Db
 */
 class GroupCondition {
 
     const LOGIC_AND = 'AND';
-
     const LOGIC_OR = 'OR';
 
     private $logicOperator;
-
     private $conditions;
 
+    /**
+     * @param array $conditions
+     * @param string $logicOperator
+     */
     public function __construct(array $conditions, $logicOperator = self::LOGIC_AND)
     {
         $this->conditions = $conditions;
@@ -23,6 +25,10 @@ class GroupCondition {
     }
 
 
+    /**
+     * @param bool|false $first
+     * @return string
+     */
     public function getSql($first = false)
     {
         $prepend = ' ';
@@ -34,6 +40,9 @@ class GroupCondition {
     }
 
 
+    /**
+     * @return string
+     */
     private function getConditions()
     {
         $conditions = '';
@@ -52,6 +61,10 @@ class GroupCondition {
     }
 
 
+    /**
+     * @param array $condition
+     * @return array|Condition|GroupCondition
+     */
     public static function createConditionClass(array $condition)
     {
         if (isset($condition['conditions'])) {
