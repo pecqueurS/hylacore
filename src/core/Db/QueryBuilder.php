@@ -401,6 +401,10 @@ class QueryBuilder {
                 return implode('.', $elements);
             }
 
+            if ($escapeType === QueryBuilder::ESCAPE_VALUE && ($element[0] === ':' || $element[0] === '\'')) {
+                return $element;
+            }
+
             return $escapeType . $element . $escapeType;
         }, $values);
     }

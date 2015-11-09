@@ -20,7 +20,7 @@ abstract class Logger {
     );
 
     private static $configLevel;
-    private static $file;
+    private static $file = '/../../../var/log/core.log';
 
     /**
      * @param string $message
@@ -30,8 +30,12 @@ abstract class Logger {
      */
     public static function log($message, $level, $file = null, $formatMessage = true)
     {
+        if ($file === null) {
+            $file = __DIR__ . self::$file;
+        }
+
         if (self::validLevel($level) && self::fileExists($file)) {
-            self::saveMessage($message, $level, $formatMessage);
+            self::saveMessage($message, $level, $formatMessage, $file);
         }
     }
 
@@ -66,7 +70,6 @@ abstract class Logger {
             touch($file);
             chmod($file, 0777);
         }
-        self::$file = $file;
 
         return file_exists($file) && is_writable($file);
     }
@@ -77,14 +80,14 @@ abstract class Logger {
      * @param string $level
      * @param bool $formatMessage
      */
-    private static function saveMessage($message, $level, $formatMessage = true)
+    private static function saveMessage($message, $level, $formatMessage = true, $file = null)
     {
         if ($formatMessage) {
             $message = self::formatMessage($message, $level);
         }
         $message .= PHP_EOL;
 
-        file_put_contents(self::$file, $message, FILE_APPEND);
+        file_put_contents($file, $message, FILE_APPEND);
     }
 
 

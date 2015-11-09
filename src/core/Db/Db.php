@@ -2,6 +2,7 @@
 
 namespace Hyla\Db;
 use Hyla\Config\Conf;
+use Hyla\Logger\Logger;
 
 /**
  * Class Db
@@ -11,17 +12,20 @@ class Db {
 
     const STEP = 1000;
 
-    protected $pdo = array();
+    protected $pdo;
+    protected $pdoStmt;
+    protected $query;
 
-    protected $rows = array();
+    protected $isPreparedQuery = false;
+    protected $type;
 
     protected static $instance;
 
     /**
-     * @param null $config
+     * @param array|null $config
      * @return Db
      */
-    public static function getInstance($config = null)
+    public static function getInstance(array $config = null)
     {
         if ($config !== null || !(self::instance instanceof Db)) {
             self::$instance = new Db($config);
@@ -34,26 +38,70 @@ class Db {
     /**
      * @param array|null $config
      */
-    public function __construct($config = null)
+    public function __construct(array $config = null)
     {
         $dbConf = $this->getConfig($config);
 
-
         $dns = "{$dbConf['type']}:dbname={$dbConf['dbname']};host={$dbConf['server']};port={$dbConf['port']};charset={$dbConf['charset']}";
         $this->pdo = new \PDO($dns, $dbConf['username'], $dbConf['password'], array(\PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES \'' . $dbConf['charset'] . '\''));
-
-        $test = $this->pdo->query("SELECT * FROM `test`");
-
-        var_dump($test->fetchAll());
     }
 
 
     /**
-     * @param null $config
-     * @return mixed|null
+     * @param $query
+     * @param string $type
+     * @param array|null $rows
+     * @param bool|false $isPreparedQuery
      * @throws \Exception
      */
-    protected function getConfig($config = null)
+    public function prepare($query, $type = QueryBuilder::SELECT, array $rows = null, $isPreparedQuery = false)
+    {
+        if ($query instanceof QueryBuilder) {
+            $this->query = $query->build($type, $rows);
+        } else {
+            $this->query = $query;
+        }
+        Logger::log($this->query, Logger::DEBUG);
+        $this->type = $type;
+        $this->isPreparedQuery = $isPreparedQuery;
+        if ($this->isPreparedQuery) {
+            $this->pdoStmt = $this->pdo->prepare($this->query);
+        }
+    }
+
+
+    /**
+     * @param array $params
+     * @return array|int
+     */
+    public function execute(array $params = array())
+    {
+        if ($this->isPreparedQuery) {
+            foreach ($params as $key => $parameter) {
+                $this->pdoStmt->bindParam(
+                    $key,
+                    $parameter['variable'],
+                    isset($parameter['data_type']) ? $parameter['data_type'] : null,
+                    isset($parameter['length']) ? $parameter['length'] : null
+                );
+            }
+            $this->pdoStmt->execute();
+        } elseif ($this->type === QueryBuilder::SELECT) {
+            $this->pdoStmt = $this->pdo->query($this->query);
+        } else {
+            return $this->pdo->exec($this->query);
+        }
+
+        return $this->fetch();
+    }
+
+
+    /**
+     * @param array|null $config
+     * @return array|mixed
+     * @throws \Exception
+     */
+    protected function getConfig(array $config = null)
     {
         if ($config === null) {
             $config = Conf::get('db');
@@ -79,24 +127,41 @@ class Db {
     }
 
 
-    public function addRow($row)
+    /**
+     * @return array
+     */
+    protected function fetch()
     {
-        $this->rows[] = $row;
-    }
-
-
-    public function stepping(array $rows = array())
-    {
-        $steppingRows = array();
-        for ($i = 0; $i < count($rows); $i++) {
-            $steppingRows[(int) ($i/self::STEP)][] = $rows[$i];
+        $result = array();
+        while($row = $this->pdoStmt->fetch()) {
+            if (isset($row['id'])) {
+                $result[$row['id']] = $row;
+            } else {
+                $result[] = $row;
+            }
         }
+        $this->pdoStmt->closeCursor();
 
-        return $steppingRows;
+        return $result;
     }
 
 
-    public function createRows(array $fields, array $rows)
+    /**
+     * @param array $rows
+     * @return array
+     */
+    static public function chunk(array $rows = array())
+    {
+        return array_chunk($rows, self::STEP);
+    }
+
+
+    /**
+     * @param array $fields
+     * @param array $rows
+     * @return array
+     */
+    static public function createRows(array $fields, array $rows)
     {
         $assotiativeRows = array();
         foreach ($rows as $row) {
