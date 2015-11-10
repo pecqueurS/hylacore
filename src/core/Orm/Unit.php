@@ -9,9 +9,11 @@ class Unit {
 
     private $row;
     private $primaryKey;
+    private $isNew = false;
 
-    public function __construct(array $fields = array())
+    public function __construct(array $fields = array(), $isNew = false)
     {
+        $this->isNew = $isNew;
         foreach ($fields as $field) {
             if ($field === 'id') {
                 $this->primaryKey = 'id';

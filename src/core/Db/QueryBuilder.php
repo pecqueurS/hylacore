@@ -388,6 +388,10 @@ class QueryBuilder {
     protected static function escape(array $values, $escapeType = self::ESCAPE_FIELD)
     {
         return array_map(function($element) use($escapeType) {
+            if ($escapeType === QueryBuilder::ESCAPE_FIELD && $element === '*') {
+                return $element;
+            }
+
             if ($escapeType === QueryBuilder::ESCAPE_FIELD && strstr($element, ' ') !== false) {
                 return $element;
             }
