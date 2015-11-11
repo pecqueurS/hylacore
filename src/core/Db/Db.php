@@ -27,7 +27,7 @@ class Db {
      */
     public static function getInstance(array $config = null)
     {
-        if ($config !== null || !(self::instance instanceof Db)) {
+        if ($config !== null || !(self::$instance instanceof Db)) {
             self::$instance = new Db($config);
         }
 
@@ -54,7 +54,7 @@ class Db {
      * @param bool|false $isPreparedQuery
      * @throws \Exception
      */
-    public function prepare($query, $type = QueryBuilder::SELECT, array $rows = null, $isPreparedQuery = false)
+    public function prepare($query, $type = QueryBuilder::SELECT, array $rows = array(), $isPreparedQuery = false)
     {
         if ($query instanceof QueryBuilder) {
             $this->query = $query->build($type, $rows);
@@ -133,7 +133,7 @@ class Db {
     protected function fetch()
     {
         $result = array();
-        while($row = $this->pdoStmt->fetch()) {
+        while($row = $this->pdoStmt->fetch(\PDO::FETCH_ASSOC)) {
             if (isset($row['id'])) {
                 $result[$row['id']] = $row;
             } else {

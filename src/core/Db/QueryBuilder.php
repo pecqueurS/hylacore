@@ -127,7 +127,7 @@ class QueryBuilder {
                 throw new \Exception('Type does not exist');
         }
 
-        return $query;
+        return trim($query);
     }
 
 
@@ -177,7 +177,7 @@ class QueryBuilder {
     {
         if (empty($rows)) {
             return '';
-        } elseif (count($rows) === 1) {
+        } elseif (count($rows) === 1 && !empty($this->conditions)) {
             $query = "UPDATE `{$this->table}`
                       SET {$this->formatSetValues($rows)}
                       {$this->formatCondition()};";
@@ -203,7 +203,8 @@ class QueryBuilder {
     {
         $query = "DELETE
                   FROM `{$this->table}`
-                  {$this->formatCondition()};";
+                  {$this->formatCondition()}
+                  {$this->formatLimit()};";
 
         return $query;
     }
