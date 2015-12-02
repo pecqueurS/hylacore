@@ -1,9 +1,13 @@
 <?php
 
-namespace Bundles\Templates\ExtentionsTwig;
+namespace Hyla\Templates\ExtentionsTwig;
 
-use Hyla\Formulaires\Forms;
+use Hyla\Forms\Forms;
 
+/**
+ * Class FormExtTwig
+ * @package Hyla\Templates\ExtentionsTwig
+ */
 class FormExtTwig extends \Twig_Extension
 {
     /**

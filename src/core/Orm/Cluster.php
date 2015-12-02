@@ -1,6 +1,7 @@
 <?php
 namespace Hyla\Orm;
 
+use Hyla\Orm\Drivers\ModelApi;
 use Hyla\Orm\Drivers\ModelDb;
 
 class Cluster {
@@ -10,12 +11,13 @@ class Cluster {
     protected $model;
     protected $type;
     protected $table;
+    protected $url;
 
     public function __construct()
     {
         switch ($this->type) {
             case self::API:
-
+                $this->model = new ModelApi($this->url);
                 break;
             case self::DB:
                 $this->model = new ModelDb($this->table);

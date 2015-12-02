@@ -7,8 +7,9 @@ use Hyla\Templates\ExtentionsTwig\FormExtTwig;
 use Hyla\Templates\ExtentionsTwig\TranslateExtTwig;
 
 /**
-* 
-*/
+ * Class Tpl
+ * @package Hyla\Templates
+ */
 class Tpl {
 	
 	protected $environnement = array(

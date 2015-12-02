@@ -1,6 +1,10 @@
 <?php
 namespace Hyla\Api;
 
+/**
+ * Class ApiClient
+ * @package Hyla\Api
+ */
 class ApiClient
 {
     /**
@@ -41,10 +45,14 @@ class ApiClient
      */
     private $responseStatus;
 
-
-    public function __construct($configServerName, $method = self::GET)
+    /**
+     * ApiClient constructor.
+     * @param string $serverName
+     * @param string $method
+     */
+    public function __construct($serverName, $method = self::GET)
     {
-        $this->serverName = Conf::getConfig($configServerName);
+        $this->serverName = $serverName;
         $this->method = $method;
     }
 
@@ -52,7 +60,7 @@ class ApiClient
     /**
      * @param array $paramsRoute
      */
-    public function setParamsRoute(array $paramsRoute = array())
+    public function setParamsRoute(array $paramsRoute = [])
     {
         $this->url = $this->buildUrl($paramsRoute);
     }
@@ -61,7 +69,7 @@ class ApiClient
     /**
      * @param array $paramsBody
      */
-    public function setParamsBody(array $paramsBody = array())
+    public function setParamsBody(array $paramsBody = [])
     {
         $this->params = $this->buildBody($paramsBody);
     }

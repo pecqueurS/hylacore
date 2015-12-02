@@ -1,9 +1,13 @@
 <?php
 
-namespace Bundles\Templates\ExtentionsTwig;
+namespace Hyla\Templates\ExtentionsTwig;
 
 use Hyla\Translate\Dico;
 
+/**
+ * Class TranslateExtTwig
+ * @package Hyla\Templates\ExtentionsTwig
+ */
 class TranslateExtTwig extends \Twig_Extension
 {
     /**
