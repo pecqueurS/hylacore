@@ -1,35 +1,47 @@
 <?php
 
 namespace Hyla\Forms\Utils;
+use Hyla\Logger\Logger;
 
 
 /**
  * Class Inputs
  * @package Hyla\Forms\Utils
  */
-class Inputs {
+class Inputs
+{
 
-	public function __construct ($name, $options) {
-
-	}
-
-	public static function render($name, $options) {
-		$inputs = new Inputs($name, $options);
-
-		$method = $options['type'].'HTML';
+	/**
+	 * @param string $name
+	 * @param array $options
+	 * @return mixed
+	 */
+	public static function render($name, array $options)
+    {
+		$inputs = new Inputs();
+		$method = (isset($options['type']) ? $options['type'] : '') . 'HTML';
 
 		return $inputs->$method($name, $options);
-
-
 	}
 
-	public function __call($method,$arguments) {
-		echo 'Vous avez appelé la méthode ', $method, 'avec les arguments : ', implode(', ',$arguments);
+    /**
+     * @param string $method
+     * @param array $arguments
+     */
+	public function __call($method, array $arguments)
+    {
+		Logger::log('Undefined method : ' . $method . 'called with : ' . var_export($arguments, true), Logger::INFO);
 	}
 
-
-
-	private function input($name, $options, $import='', $after='') {
+    /**
+     * @param string $name
+     * @param array $options
+     * @param string $import
+     * @param string $after
+     * @return mixed
+     */
+	private function input($name, array $options, $import = '', $after = '')
+    {
 		$result = "<input type='{$options['type']}' name='$name' ";
 		// Id (string)
 		$result .= (isset($options['id'])) ? "id='{$options['id']}' " : "id='$name' ";
@@ -54,22 +66,21 @@ class Inputs {
 			}
 		}
 
-		// Options supplementaires
+		// Other Options
 		$result .= $import;
-
 		$result .= "value='";
 		$response['preInput'] = $result;
 
-		// Value si elle existe (array) ou (true) pour recuperer les valeurs
+		// Value if exist (array) or (true) to retrieve values
 		if(isset($options['value']) && is_array($options['value'])) {
 			$response['valInput'] = $options['value'][0];
 		} else {
 			$response['valInput'] = '';
 		}
-		// Fin de balise
+		// ending tag
 		$result = "'>\n";
 
-		// Apres balise
+		// after tag
 		$result .= $after;
 
 		$response['postInput'] = $result;
@@ -77,7 +88,13 @@ class Inputs {
 		return $response;
 	}
 
-	private function select($name, $options) {
+    /**
+     * @param $name
+     * @param array $options
+     * @return mixed
+     */
+	private function select($name, array $options)
+    {
 		$arr = (isset($options['multiple']) && $options['multiple'] === true)? '[]' : '';
 		$result = "<select name='$name$arr' ";
 		// Id (string)
@@ -120,7 +137,13 @@ class Inputs {
 
 	}
 
-	private function radio($name, $options) {
+    /**
+     * @param $name
+     * @param array $options
+     * @return mixed
+     */
+	private function radio($name, array $options)
+    {
 		$result ='';
 		// choices (array)
 		if(isset($options['choices'])) {
@@ -160,7 +183,13 @@ class Inputs {
 
 	}
 
-	private function checkbox($name, $options) {
+    /**
+     * @param $name
+     * @param array $options
+     * @return mixed
+     */
+	private function checkbox($name, array $options)
+    {
 		$result ='';
 		// choices (array)
 		if(isset($options['choices'])) {
@@ -202,7 +231,13 @@ class Inputs {
 
 	}
 
-	private function textareaHTML($name, $options) {
+    /**
+     * @param $name
+     * @param array $options
+     * @return mixed
+     */
+	private function textareaHTML($name, array $options)
+    {
 		$result = "<{$options['type']} name='$name' ";
 		// Id (string)
 		$result .= (isset($options['id'])) ? "id='{$options['id']}' " : "id='$name' ";
@@ -236,15 +271,33 @@ class Inputs {
 		return $response;
 	}
 
-	private function textHTML($name, $options) {
+    /**
+     * @param $name
+     * @param array $options
+     * @return mixed
+     */
+	private function textHTML($name, array $options)
+    {
 		return $this->input($name, $options);
 	}
 
-	private function emailHTML($name, $options) {
+    /**
+     * @param $name
+     * @param array $options
+     * @return mixed
+     */
+	private function emailHTML($name, array $options)
+    {
 		return $this->input($name, $options);
 	}
 
-	private function numberHTML($name, $options) {
+    /**
+     * @param $name
+     * @param array $options
+     * @return mixed
+     */
+	private function numberHTML($name, array $options)
+    {
 		$import = '';
 		// step (float)
 		if(isset($options['step'])) $import .= "step='{$options['step']}' ";
@@ -256,7 +309,8 @@ class Inputs {
 		return $this->input($name, $options, $import);
 	}
 
-	private function rangeHTML($name, $options) {
+	private function rangeHTML($name, array $options)
+    {
 		$import = '';
 		// step (float)
 		if(isset($options['step'])) $import .= "step='{$options['step']}' ";
@@ -268,7 +322,8 @@ class Inputs {
 		return $this->input($name, $options, $import);
 	}
 
-	private function moneyHTML($name, $options) {
+	private function moneyHTML($name, $options)
+    {
 		$options['type'] = 'number';
 		$import = '';
 		$after = '';
@@ -285,16 +340,34 @@ class Inputs {
 		return $this->input($name, $options, $import, $after);
 	}
 
-	private function passwordHTML($name, $options) {
+    /**
+     * @param $name
+     * @param array $options
+     * @return mixed
+     */
+	private function passwordHTML($name, array $options)
+    {
 		return $this->input($name, $options);
 	}
 
-	private function searchHTML($name, $options) {
+    /**
+     * @param $name
+     * @param array $options
+     * @return mixed
+     */
+	private function searchHTML($name, array $options)
+    {
 		return $this->input($name, $options);
 	}
 
-	private function urlHTML($name, $options) {
-		$result .= "<input type='{$options['type']}' name='$name' ";
+    /**
+     * @param $name
+     * @param array $options
+     * @return mixed
+     */
+	private function urlHTML($name, array $options)
+    {
+		$result = "<input type='{$options['type']}' name='$name' ";
 		// Id (string)
 		$result .= (isset($options['id'])) ? "id='{$options['id']}' " : "id='$name' ";
 		// class (string)
@@ -317,33 +390,45 @@ class Inputs {
 		}
 		// Value si elle existe (array) ou (true) pour recuperer les valeurs & protocol (string)
 		$result .= "value='";
-
 		$response['preInput'] = $result;
 		// Value si elle existe (array) ou (true) pour recuperer les valeurs
 		$response['valInput'] = ((isset($options['protocol']) ? $options['protocol'] : "http://")).((isset($options['value']) && is_array($options['value'])) ? $options['value'][0] : '');
-
 		$result = "' ";
-
 		// Finde balise
 		$result .= ">\n";
-
 
 		$response['postInput'] = $result;
 
 		return $response;
-
-
 	}
 
-	private function hiddenHTML($name, $options) {
+    /**
+     * @param $name
+     * @param array $options
+     * @return mixed
+     */
+	private function hiddenHTML($name, array $options)
+    {
 		return $this->input($name, $options);
 	}
 
-	private function dateHTML($name, $options) {
+    /**
+     * @param $name
+     * @param array $options
+     * @return mixed
+     */
+	private function dateHTML($name, array $options)
+    {
 		return $this->input($name, $options);
 	}
 
-	private function choiceHTML($name, $options) {
+    /**
+     * @param $name
+     * @param array $options
+     * @return mixed
+     */
+	private function choiceHTML($name, array $options)
+    {
 		// Choix entre un select, un checkbox ou un radio
 		if(isset($options['list']) && $options['list'] === true) {
 			$result = $this->select($name, $options);
@@ -354,7 +439,13 @@ class Inputs {
 		return $result;
 	}
 
-	private function fileHTML($name,$options) {
+    /**
+     * @param $name
+     * @param array $options
+     * @return mixed
+     */
+	private function fileHTML($name, array $options)
+    {
 		$result = "<div id='$name-file' class='file-form' >\n";
 		$import = '';
 		// accept (string)
@@ -370,9 +461,5 @@ class Inputs {
 		$response['postInput'] = '';
 		return $response;
 	}
-
-
-
-
 }
 

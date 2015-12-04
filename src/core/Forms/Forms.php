@@ -2,21 +2,28 @@
 
 namespace Hyla\Forms;
 
-use Bundles\Parametres\Conf;
+use Hyla\Config\Conf;
 
 use Hyla\Forms\Utils\Inputs;
 use Hyla\Forms\Utils\Inspector;
 
 use Hyla\Forms\Tpl\FormTpl;
 
-use Bundles\Translate\Dico;
+//use Hyla\Translate\Dico;
 
 
 /**
  * Class Forms
  * @package Hyla\Forms
  */
-class Forms {
+class Forms
+{
+	const TYPE_POST = 'POST';
+    const TYPE_GET = 'GET';
+    const TYPE_FILE = 'FILE';
+
+    const FORMS_PATH = '/etc/forms/';
+
 	public $dirForm;
 
 	public static $renderHTML = array();
@@ -27,26 +34,33 @@ class Forms {
 	public $inputs;
 	public $errors;
 
-	public function __construct($nameForm=null, $type="POST", $dirForm=null) {
-		$this->dirForm = Conf::getConstants()->getConf()['FORMS'];
-		if($nameForm) $this->nameForm = $nameForm;
-		if($dirForm) $this->dirForm = Conf::getConstants()->getConf()['ROOT'].$dirForm;
-		$this->type = $type;
-		$this->loadForm();
-	}
+    /**
+     * Forms constructor.
+     * @param string $nameForm
+     * @param string $type
+     * @param string|null $dirForm
+     */
+    public function __construct($nameForm, $type = self::TYPE_POST, $dirForm = null)
+    {
+        $this->nameForm = $nameForm;
+        $this->type = $type;
 
-	public static function make($nameForm=null, $type="POST", $dirForm=null) {
-		$form = new Forms($nameForm, $type, $dirForm);
-		return $form;
-	}
+        $app = Conf::get('app');
+        $this->dirForm = $app['root'] . $app['path'] . ($dirForm === null ? self::FORMS_PATH : $dirForm);
 
-	public function loadForm(){
+        $this->loadFormConf();
+ 	}
+
+    /**
+     * Load form conf from file
+     */
+    public function loadFormConf()
+    {
 		$form = json_decode(file_get_contents($this->dirForm.$this->nameForm.'.json'), true);
 		foreach ($form as $input) {
 			$this->add($input['name'], $input['options']);
 		}
 	}
-
 
 	/**
 	 * ->add("nom_du_champs", array(
@@ -66,136 +80,165 @@ class Forms {
 	 *         
 	 *     )
 	 * ));
-	 * @param [str] $name    [description]
-	 * @param [arr] $options [description]
+	 * @param string $name
+	 * @param array $options
 	 */
-	public function add($name,$options=array()) {
+	public function add($name,$options=array())
+    {
 		$this->inputs[$name] = array("name" => (string)$name, "options" =>(array)$options);
 	}
 
-	public function changeOption($name, $option, $value) {
+    /**
+     * @param string $name
+     * @param string $option
+     * @param mixed $value
+     */
+    public function changeOption($name, $option, $value)
+    {
 		$this->inputs[$name]['options'][$option] = $value;
 	}
 
-	public function changeConstraint($name, $constraint, $value) {
+    /**
+     * @param string $name
+     * @param string $constraint
+     * @param mixed $value
+     */
+    public function changeConstraint($name, $constraint, $value)
+    {
 		$this->inputs[$name]['options']['constraints'][$constraint] = $value;
 	}
 
-
-
-	public function render(){
-		$inputsHTML = array();
-		foreach ($this->input as $input) {
-			$inputsHTML[$input['name']] = $this->constructBlock($input['name'], $input['options']);
-			self::$renderHTML[$this->nameForm][$input['name']] = $inputsHTML[$input['name']];
-		}
-		
-		return $inputsHTML;
-	}
-
-
-	public function isValid(){
+    /**
+     * @return bool
+     */
+    public function isValid()
+    {
 		$result = true;
 		foreach ($this->inputs as $input) {
-			if(!$this->verifBlock($input['name'], $input['options'])) {
+			if(!$this->checkBlock($input['name'], $input['options'])) {
 				$result = false;
 			}
 		}
 		self::$isValid = $result;
+
 		return $result;
 	}
 
+    /**
+     * @param string $name
+     * @param array $options
+     * @return bool
+     */
+    private function checkBlock($name, array $options)
+    {
+        $vars = $this->getVars($name, $options);
+        if(isset($vars[$name]) || (strtoupper($options['type']) === self::TYPE_FILE)) {
+            $response = true;
+            if (isset($options['constraints'])) {
+                $value = ((strtoupper($options['type']) === self::TYPE_FILE) ? $vars : $vars[$name]);
+                foreach ($options['constraints'] as $type => $constraint) {
+                    if(!(isset($options['disabled']) && $options['disabled'] === true)) {
+                        if(!Inspector::checkData($value, $type, $constraint)) {
+                            if(isset($this->errors[$name])) {
+                                $this->errors[$name] .= Inspector::getMsg();
+                            } else {
+                                $this->errors[$name] = Inspector::getMsg();
+                            }
+                            $response = false;
+                        }
+                    }
 
-	private function constructBlock($name, $options) {
+                    if(isset($options['value'])){
+                        $this->inputs[$name]['options']['value'] = (is_array($vars[$name])) ? $vars[$name] : array($vars[$name]);
+                    }
+                }
+            }
 
+            return $response;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param string $name
+     * @param array $options
+     * @return mixed
+     */
+    private function getVars($name, array $options)
+    {
+        if (isset($options['type']) && strtoupper($options['type']) === self::TYPE_FILE) {
+            return $_FILES[$name];
+        } elseif ($this->type === self::TYPE_GET) {
+            return $_GET;
+        }
+
+        return $_POST;
+    }
+
+
+    /**
+     * @return array
+     */
+    public function render()
+    {
+        $inputsHTML = array();
+        foreach ($this->input as $input) {
+            $inputsHTML[$input['name']] = $this->constructBlock($input['name'], $input['options']);
+            self::$renderHTML[$this->nameForm][$input['name']] = $inputsHTML[$input['name']];
+        }
+
+        return $inputsHTML;
+    }
+
+    /**
+     * @param string $name
+     * @param array $options
+     * @return string
+     */
+    private function constructBlock($name, array $options)
+    {
 		$response['name'] = $name;
-		
-		// required
-		$response['required'] = (isset($options['required']) && $options['required'] === TRUE) ? "<span class='required-form'> *</span>" : '' ;
-
-		// Label option
+		$response['required'] = (isset($options['required']) && $options['required'] === true) ? "<span class='required-form'> *</span>" : '' ;
 		if(isset($options['label'])) {
-			if($options['label']!==FALSE) {
-				$response['label'] = (isset($options['translate']) && $options['translate'] === TRUE) ? Dico::trad($options['label']) : $options['label'] ;
+			if($options['label'] !== false) {
+                // TODO add translate
+				$response['label'] = /*(isset($options['translate']) && $options['translate'] === true) ? Dico::trad($options['label']) : */$options['label'] ;
 			} 
 		} else {
 			$response['label'] = $name;
 		}
-
-		// Input
-		$response['input'] = $this->constructInput($name, $options);
-
-		// Error
+    	$response['input'] = $this->constructInput($name, $options);
 		if(isset($this->errors[$name])) {
 			$response['errors'] = (isset($options['errorMsg']))? $options['errorMsg'] : $this->errors[$name] ;
 		}
-
-		// Description
 		if(isset($options['desc'])) {
 			$response['description'] = $options['desc'];
 		}
 
-
-		//Tpl::$dirTwigTpl = '/Bundles/Formulaires/Tpl';
-		return FormTpl::display($response, 'form.twig');
-
-
-
-
+        return FormTpl::display($response);
 	}
 
-	private function constructInput($name, $options) {
-		if(empty($options)) $options['type'] = 'text'; 
+    /**
+     * @param string $name
+     * @param array $options
+     * @return mixed
+     */
+	private function constructInput($name, array $options)
+    {
+		if(empty($options)) {
+            $options['type'] = 'text';
+        }
+
 		return Inputs::render($name, $options);
 	}
 
-	
-
-	private function verifBlock($name, $options) {
-		switch ($this->type) {
-			case 'GET':
-				$vars = $_GET;
-				break;
-			
-			default:
-				$vars = $_POST;
-				break;
-		}
-
-		$vars = (($options['type'] == 'file')? $_FILES[$name] : $vars);
-		if(isset($vars[$name]) || ($options['type'] == 'file')) { 
-			if (isset($options['constraints'])) {
-				$response = true;
-				
-				$value = (($options['type'] == 'file') ? $vars : $vars[$name]);
-				foreach ($options['constraints'] as $type => $constraint) {
-					if(!(isset($options['disabled']) && $options['disabled'] === true)) {
-						if(!Inspector::checkData($value, $type, $constraint)) {
-							if(isset($this->errors[$name])) {
-								$this->errors[$name] .= Inspector::getMsg();
-							} else {
-								$this->errors[$name] = Inspector::getMsg();
-							}
-							$response = false;
-						}
-					}
-					
-					if(isset($options['value'])){
-						$this->inputs[$name]['options']['value'] = (is_array($vars[$name])) ? $vars[$name] : array($vars[$name]);
-					}
-				}
-				return $response;
-			} else {
-				return true;
-			}
-		} else {
-			return false;
-		}
-		
-	}
-
-
-	public function getValue($name) {
+    /**
+     * @param string $name
+     * @return array|mixed
+     */
+	public function getValue($name)
+    {
 		$input = $this->inputs[$name];
 		if (empty($input['options']['value'])) {
 			return array();
@@ -212,12 +255,4 @@ class Forms {
 
 		return $result;
 	}
-
-	
-
-
-
-
-
-
 }

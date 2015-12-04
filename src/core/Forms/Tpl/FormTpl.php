@@ -9,14 +9,20 @@ use Hyla\Templates\Tpl;
  * Class FormTpl
  * @package Hyla\Forms\Tpl
  */
-class FormTpl extends Tpl {
+class FormTpl extends Tpl
+{
 	
-	public static function display($vars = array(), $tpl = null) {
-		$tplObj = new Tpl('/Bundles/Formulaires/Tpl');
-		//$this->dirTwigTpl = '/Bundles/Formulaires/Tpl';
+	const PATH_TO_FORM_TPL = '/src/core/Forms/Tpl';
+
+	/**
+	 * @param array $vars
+	 * @param string $tpl
+	 * @return string
+	 */
+	public static function display(array $vars = array(), $tpl = 'form.twig')
+	{
+		$tplObj = new Tpl(self::PATH_TO_FORM_TPL);
+
 		return $tplObj->addVars($vars)->getTpl($tpl);
 	}
-
-	
-
 }

@@ -1,46 +1,64 @@
 <?php
 
 namespace Hyla\Forms\Utils;
+use Hyla\Logger\Logger;
 
 
 /**
  * Class Inspector
  * @package Hyla\Forms\Utils
  */
-class Inspector {
+class Inspector
+{
 
 	private static $error;
 
-	public function __construct () {
+	/**
+	 * Inspector constructor.
+	 */
+	public function __construct ()
+	{
 		self::$error = '';
 	}
 
-	public static function checkData($value, $type, $constraint) {
+	/**
+	 * @param mixed $value
+	 * @param string $type
+	 * @param mixed $constraint
+	 * @return bool
+	 */
+	public static function checkData($value, $type, $constraint)
+	{
 		$inspector = new Inspector();
-
-		$method = $type.'_Check';
+		$method = 'check' . $type;
 
 		return $inspector->$method($value, $constraint);
 	}
 
-
-	public static function getMsg() {
+	/**
+	 * @return string
+	 */
+	public static function getMsg()
+	{
 		return self::$error;
 	}
 
-
-	public function __call($method,$arguments) {
-		echo 'Vous avez appelé la méthode ', $method, 'avec les arguments : ', implode(', ',$arguments);
+	/**
+	 * @param string $method
+	 * @param array $arguments
+	 */
+	public function __call($method, array $arguments)
+	{
+		Logger::log('Undefined method : ' . $method . 'called with : ' . var_export($arguments, true), Logger::INFO);
 	}
 
-
-
-
-
-
-
-// Contraintes de bases
-	private function NotBlank_Check($value, $constraint) {
+	/**
+	 * @param $value
+	 * @param $constraint
+	 * @return bool
+	 */
+	private function checkNotBlank($value, $constraint)
+	{
 		if($constraint) {
 			if (false === $value || (empty($value) && '0' != $value)) {
 	            self::$error = '<span>This value should not be blank. </span>';
@@ -50,7 +68,13 @@ class Inspector {
 		return true;
 	}
 
-	private function Blank_Check($value, $constraint) {
+	/**
+	 * @param $value
+	 * @param $constraint
+	 * @return bool
+	 */
+	private function checkBlank($value, $constraint)
+	{
 		if($constraint) {
 			if ('' !== $value && null !== $value) {
 	            self::$error = '<span>This value should be blank. </span>';
@@ -60,7 +84,13 @@ class Inspector {
 		return true;
 	}
 
-	private function NotNull_Check($value, $constraint) {
+	/**
+	 * @param $value
+	 * @param $constraint
+	 * @return bool
+	 */
+	private function checkNotNull($value, $constraint)
+	{
 		if($constraint) {
 			if (null === $value) {
 	            self::$error = '<span>This value should not be null. </span>';
@@ -70,7 +100,13 @@ class Inspector {
 		return true;
 	}
 
-	private function Null_Check($value, $constraint) {
+	/**
+	 * @param $value
+	 * @param $constraint
+	 * @return bool
+	 */
+	private function checkNull($value, $constraint)
+	{
 		if($constraint) {
 			if (null !== $value) {
 	            self::$error = '<span>This value should be null. </span>';
@@ -80,7 +116,13 @@ class Inspector {
 		return true;
 	}
 
-	private function True_Check($value, $constraint) {
+	/**
+	 * @param $value
+	 * @param $constraint
+	 * @return bool
+	 */
+	private function checkTrue($value, $constraint)
+	{
 		if($constraint) {
 			if (true !== $value && 1 !== $value && '1' !== $value) {
 	            self::$error = '<span>This value should be true. </span>';
@@ -90,7 +132,13 @@ class Inspector {
 		return true;
 	}
 
-	private function False_Check($value, $constraint) {
+	/**
+	 * @param $value
+	 * @param $constraint
+	 * @return bool
+	 */
+	private function checkFalse($value, $constraint)
+	{
 		if($constraint) {
 			if (null === $value || false === $value || 0 === $value || '0' === $value) {
 	            return true;
@@ -102,15 +150,21 @@ class Inspector {
 		return true;
 	}
 
-	private function Type_Check($value, $constraint) {
+	/**
+	 * @param $value
+	 * @param $constraint
+	 * @return bool
+	 */
+	private function checkType($value, $constraint)
+	{
 			if (null === $value) {
 	            return true;
 	        }
 
 	        $type = strtolower($constraint);
 	        $type = $type == 'boolean' ? 'bool' : $constraint;
-	        $isFunction = 'is_'.$type;
-	        $ctypeFunction = 'ctype_'.$type;
+	        $isFunction = 'is_' . $type;
+	        $ctypeFunction = 'ctype_' . $type;
 
 	        if (function_exists($isFunction) && call_user_func($isFunction, $value)) {
 	            return true;
@@ -124,8 +178,13 @@ class Inspector {
 	        return false;
 	}
 
-// Contraintes sur les chaînes de caractères
-	private function Email_Check($value, $constraint) {
+	/**
+	 * @param $value
+	 * @param $constraint
+	 * @return bool
+	 */
+	private function checkEmail($value, $constraint)
+	{
 		if($constraint) {
 			if (null === $value || '' === $value) {
 	            return true;
@@ -142,36 +201,42 @@ class Inspector {
 		return true;    
 	}
 
-	private function Length_Check($value, $constraint) {
+	/**
+	 * @param $value
+	 * @param $constraint
+	 * @return bool
+	 */
+	private function checkLength($value, $constraint)
+	{
 		if (null === $value || '' === $value) {
             return true;
         }
 
         $stringValue = (string) $value;
-
         $length = strlen($stringValue);
-        
         if ($constraint['min'] == $constraint['max'] && $length != $constraint['min']) {
             self::$error = "<span>This value should have exactly {$constraint['min']} characters... </span>";
 	        return false;
         }
-        
-
         if (null !== $constraint['max'] && $length > $constraint['max']) {
             self::$error = "<span>This value is too long. It should have {$constraint['max']} characters or less... </span>";
 	        return false;
         }
-
         if (null !== $constraint['min'] && $length < $constraint['min']) {
            self::$error = "<span>This value is too short. It should have {$constraint['min']} characters or more... </span>";
 	        return false;
         }
 
 		return true;
-	        
 	}
 
-	private function Url_Check($value, $constraint) {
+	/**
+	 * @param $value
+	 * @param $constraint
+	 * @return bool
+	 */
+	private function checkUrl($value, $constraint)
+	{
 		if($constraint) {
 			if (null === $value || '' === $value) {
 	            return true;
@@ -188,7 +253,13 @@ class Inspector {
 		return true; 
     }
 
-	private function Regex_Check($value, $constraint) {
+	/**
+	 * @param $value
+	 * @param $constraint
+	 * @return bool
+	 */
+	private function checkRegex($value, $constraint)
+	{
 		if (null === $value || '' === $value) {
             return true;
         }
@@ -208,7 +279,13 @@ class Inspector {
         return true;
     }
 
-	private function Ip_Check($value, $constraint) {
+	/**
+	 * @param $value
+	 * @param $constraint
+	 * @return bool
+	 */
+	private function checkIp($value, $constraint)
+	{
 		if (null === $value || '' === $value) {
             return true;
         }
@@ -273,8 +350,13 @@ class Inspector {
         }
     }
 
-// Contraintes sur les nombres
-	private function Range_Check($value, $constraint) {
+	/**
+	 * @param $value
+	 * @param $constraint
+	 * @return bool
+	 */
+	private function checkRange($value, $constraint)
+	{
 		if (null === $value) {
             return true;
         }
@@ -296,17 +378,30 @@ class Inspector {
         return true;
     }
 
-// Contraintes comparatives    
-	private function EqualTo_Check($value, $constraint) {
+	/**
+	 * @param $value
+	 * @param $constraint
+	 * @return bool
+	 */
+	private function checkEqualTo($value, $constraint)
+	{
 		foreach ($constraint as $compare) {
-        	if($compare == $value) return true;
+        	if($compare == $value) {
+				return true;
+			}
         }
         $constraintStr = implode(' or ', $constraint);
         self::$error = "<span>This value should be equal to $constraintStr. </span>";
         return false;
     }
 
- 	private function NotEqualTo_Check($value, $constraint) {
+	/**
+	 * @param $value
+	 * @param $constraint
+	 * @return bool
+	 */
+ 	private function checkNotEqualTo($value, $constraint)
+	{
 		foreach ($constraint as $compare) {
         	if($compare == $value) {
 				$constraintStr = implode(' or ', $constraint);
@@ -317,16 +412,30 @@ class Inspector {
         return true;
     }
 
-	private function IdenticalTo_Check($value, $constraint) {
+	/**
+	 * @param $value
+	 * @param $constraint
+	 * @return bool
+	 */
+	private function checkIdenticalTo($value, $constraint)
+	{
 		foreach ($constraint as $compare) {
-        	if($compare === $value) return true;
+        	if($compare === $value) {
+				return true;
+			}
         }
         $constraintStr = implode(' or ', $constraint);
         self::$error = "<span>This value should be identical to $constraintStr. </span>";
         return false;
     }
 
- 	private function NotIdenticalTo_Check($value, $constraint) {
+	/**
+	 * @param $value
+	 * @param $constraint
+	 * @return bool
+	 */
+ 	private function checkNotIdenticalTo($value, $constraint)
+	{
 		foreach ($constraint as $compare) {
         	if($compare === $value) {
 				$constraintStr = implode(' or ', $constraint);
@@ -337,40 +446,75 @@ class Inspector {
         return true;
     }
 
-	private function LessThan_Check($value, $constraint) {
-		if($constraint > $value) return true;
-        else {
+	/**
+	 * @param $value
+	 * @param $constraint
+	 * @return bool
+	 */
+	private function checkLessThan($value, $constraint)
+	{
+		if($constraint > $value) {
+			return true;
+		} else {
         	self::$error = "<span>This value should be less than to $constraint. </span>";
         	return false;
         }
     }
-        
-	private function LessThanOrEqual_Check($value, $constraint) {
-		if($constraint >= $value) return true;
-        else {
+
+	/**
+	 * @param $value
+	 * @param $constraint
+	 * @return bool
+	 */
+	private function checkLessThanOrEqual($value, $constraint)
+	{
+		if($constraint >= $value) {
+			return true;
+		} else {
         	self::$error = "<span>This value should be less than or equal to $constraint. </span>";
         	return false;
         }
     }
-        
-	private function GreaterThan_Check($value, $constraint) {
-		if($constraint < $value) return true;
+
+	/**
+	 * @param $value
+	 * @param $constraint
+	 * @return bool
+	 */
+	private function checkGreaterThan($value, $constraint)
+	{
+		if($constraint < $value) {
+			return true;
+		}
         else {
         	self::$error = "<span>This value should be greater than to $constraint. </span>";
         	return false;
         }
     }
-        
-	private function GreaterThanOrEqual_Check($value, $constraint) {
-		if($constraint <= $value) return true;
+
+	/**
+	 * @param $value
+	 * @param $constraint
+	 * @return bool
+	 */
+	private function checkGreaterThanOrEqual($value, $constraint)
+	{
+		if($constraint <= $value) {
+			return true;
+		}
         else {
         	self::$error = "<span>This value should be greater than or equal to $constraint. </span>";
         	return false;
         }
     }
-        
-// Contraintes sur les dates
-	private function Date_Check($value, $constraint) {
+
+	/**
+	 * @param $value
+	 * @param $constraint
+	 * @return bool
+	 */
+	private function checkDate($value, $constraint)
+	{
 		if($constraint) {
 			if (null === $value || '' === $value || $value instanceof \DateTime) {
 	            return true;
@@ -401,15 +545,19 @@ class Inspector {
 	        if (!preg_match($pattern, $value, $matches) || !checkdate($matches[$order[0]], $matches[$order[1]], $matches[$order[2]])) {
 	            self::$error = '<span>This value is not a valid date. </span>';
         		return false;
-	        } else {
-	        	return true;
 	        }
-	    }
-    }
-        
 
-// Contraintes sur les fichiers
-	private function File_Check($value, $constraint) { 
+			return true;
+		}
+    }
+
+	/**
+	 * @param $value
+	 * @param $constraint
+	 * @return bool
+	 */
+	private function checkFile($value, $constraint)
+	{
 		// origin : http://www.php.net/manual/fr/features.file-upload.php#114004
 		    // Undefined | Multiple Files | $_FILES Corruption Attack
 		    // If this request falls under any of them, treat it invalid.
@@ -453,12 +601,5 @@ class Inspector {
 		    }
 
 		    return true;
-		
     }
-        
-
-    
-
-
 }
-
