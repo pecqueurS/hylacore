@@ -72,7 +72,9 @@ abstract class FrontController {
         $handler = array( new $classname(), Conf::get('routeInfo.method'));
         if (is_callable($handler)) {
             $response = call_user_func_array($handler, Conf::get('routeInfo.argv'));
-            self::$response = array_merge(self::$response, $response);
+            if ($response) {
+                self::$response = array_merge(self::$response, $response);
+            }
         } else {
             throw new \Exception('Controller does not exist');
         }
