@@ -40,12 +40,12 @@ class Tpl {
 		$this->twig = new \Twig_Environment($loader, $this->environnement);
 		$this->twig->addExtension(new \Twig_Extension_Debug());
 		// Bundle Formulaire affichage par form(nomForm, nomInput)
-		//$this->twig->addExtension(new FormExtTwig());
+		$this->twig->addExtension(new FormExtTwig());
 		// Bundle Translate affichage par dico(cle)
 		//$this->twig->addExtension(new TranslateExtTwig());
 	}
 
-	public static function display($vars = array(), $dirTpl = null) {
+	public static function display(array $vars = array(), $dirTpl = null) {
 		$tplObj = new Tpl($dirTpl);
 		return $tplObj->addVars($vars)->getTpl();
 	}

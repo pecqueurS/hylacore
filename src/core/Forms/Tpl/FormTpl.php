@@ -12,6 +12,8 @@ use Hyla\Templates\Tpl;
 class FormTpl extends Tpl
 {
 	
+	const DEFAULT_FILE_TPL = 'form.twig';
+
 	const PATH_TO_FORM_TPL = '/src/core/Forms/Tpl';
 
 	/**
@@ -19,10 +21,11 @@ class FormTpl extends Tpl
 	 * @param string $tpl
 	 * @return string
 	 */
-	public static function display(array $vars = array(), $tpl = 'form.twig')
+	public static function display(array $vars = array(), $dirTpl = null)
 	{
+		$dirTpl = $dirTpl === null ? self::DEFAULT_FILE_TPL : $dirTpl;
 		$tplObj = new Tpl(self::PATH_TO_FORM_TPL);
 
-		return $tplObj->addVars($vars)->getTpl($tpl);
+		return $tplObj->addVars($vars)->getTpl($dirTpl);
 	}
 }

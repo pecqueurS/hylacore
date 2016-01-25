@@ -111,7 +111,7 @@ class Forms
     /**
      * @return bool
      */
-    public function isValid()
+    public function valid()
     {
 		$result = true;
 		foreach ($this->inputs as $input) {
@@ -120,6 +120,9 @@ class Forms
 			}
 		}
 		self::$isValid = $result;
+        if (self::$isValid === false) {
+            return $this->render();
+        }
 
 		return $result;
 	}
@@ -183,7 +186,7 @@ class Forms
     public function render()
     {
         $inputsHTML = array();
-        foreach ($this->input as $input) {
+        foreach ($this->inputs as $input) {
             $inputsHTML[$input['name']] = $this->constructBlock($input['name'], $input['options']);
             self::$renderHTML[$this->nameForm][$input['name']] = $inputsHTML[$input['name']];
         }

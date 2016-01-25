@@ -218,8 +218,10 @@ abstract class Router {
         $queryStringExploded = explode('&', $queryStringServer);
         $getParameters = array();
         foreach ($queryStringExploded as $parameter) {
-            list($key, $value) = explode('=', $parameter);
-            $getParameters[$key] = $value;
+            if(!empty($parameter)) {
+                list($key, $value) = explode('=', $parameter);
+                $getParameters[$key] = $value;
+            }
         }
 
         return $getParameters;
