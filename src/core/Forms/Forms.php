@@ -111,7 +111,7 @@ class Forms
     /**
      * @return bool
      */
-    public function valid()
+    public function validate()
     {
 		$result = true;
 		foreach ($this->inputs as $input) {
