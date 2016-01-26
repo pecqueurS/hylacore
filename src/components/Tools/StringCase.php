@@ -3,6 +3,10 @@
 namespace HylaComponents\Tools;
 
 
+/**
+ * Class StringCase
+ * @package HylaComponents\Tools
+ */
 abstract class StringCase {
 
 
