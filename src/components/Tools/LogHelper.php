@@ -1,39 +1,39 @@
 <?php
 namespace HylaComponents\Tools;
+use Hyla\Config\Conf;
+use Hyla\Logger\Logger;
 
 /**
- * Class DebugTimer
- * @package Mobile\Backend\Services\Timer
+ * Class LogHelper
+ * @package HylaComponents\Tools
  */
-class DebugTimer
+class LogHelper
 {
-    protected static $timerLevelValue = 'DEBUG';
     protected static $maxMemoryUsed = 0;
-    /**
-     * @var array list level
-     */
-    protected static $listLevel = array(
-        0 => 'DEBUG',
-        1 => 'INFO',
-        2 => 'ERROR',
-        3 => 'CRIT'
-    );
     protected static $timeClocks = array();
+
     public static function init()
     {
         self::createTimePoint(microtime(true), 'init', true);
     }
+
+    /**
+     * @param mixed $entity
+     * @param string $message
+     * @param null $begin
+     * @param null $var
+     */
     public static function log($entity = null, $message = null, $begin = null, $var = null)
     {
-        $conf = Conf::getConfig('logger_timer');
-        if (array_search(self::$timerLevelValue, self::$listLevel)
-            >= array_search($conf['log_level'], self::$listLevel)) {
-            self::add($message);
-            $message = self::createErrorMessage($entity, self::$timerLevelValue, $message, $begin, $var);
-            $file = new File($conf);
-            $file->log($message, self::$timerLevelValue);
-        }
+        $conf = Conf::get('logger_helper');
+        self::add($message);
+        $message = self::createErrorMessage($entity, $conf['level'], $message, $begin, $var);
+        Logger::log($message, $conf['level'], $conf['file'], false);
     }
+
+    /**
+     * @param string $message
+     */
     public static function add($message = 'default')
     {
         if (empty(static::$timeClocks)) {
@@ -41,6 +41,12 @@ class DebugTimer
         }
         self::createTimePoint(microtime(true), $message);
     }
+
+    /**
+     * @param string $time
+     * @param string $message
+     * @param bool|false $init
+     */
     private static function createTimePoint($time, $message, $init = false)
     {
         $timePoint = array(
