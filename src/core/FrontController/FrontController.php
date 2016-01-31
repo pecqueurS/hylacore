@@ -71,7 +71,8 @@ abstract class FrontController {
         $classname = Conf::get('routeInfo.class');
         $handler = array( new $classname(), Conf::get('routeInfo.method'));
         if (is_callable($handler)) {
-            $response = call_user_func_array($handler, Conf::get('routeInfo.argv'));
+            $args = (Conf::get('routeInfo.argv'));
+            $response = call_user_func_array($handler, $args === null ? array() : $args);
             if ($response) {
                 self::$response = array_merge(self::$response, $response);
             }
