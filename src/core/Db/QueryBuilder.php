@@ -275,7 +275,7 @@ class QueryBuilder {
             $conditions .= $condition->getSql($conditions === '');
         }
 
-        return $conditions;
+        return ($conditions !== '' ? ' WHERE ': '') . $conditions;
     }
 
 

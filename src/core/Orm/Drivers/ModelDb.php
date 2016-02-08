@@ -233,6 +233,9 @@ class ModelDb {
         $query->addFields($fields);
 
         if ($conditions !== null) {
+            if (!is_array($conditions)) {
+                $conditions = array($conditions);
+            }
             $query->addConditions($conditions);
         }
 
